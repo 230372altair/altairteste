@@ -36,6 +36,7 @@ await context.route('**/*', async route => {
           window.__active++; window.__maxActive = Math.max(window.__maxActive, window.__active);
           await new Promise(r => setTimeout(r, 25)); window.__active--;
           const base = { turma: '601', coordenacao_codigo: 'EF', coordenacao_nome: 'Ensino Fundamental', turno: 'Matutino', total_alunos_ativos: 30, total_p: 120, total_f: 8, total_lancamentos: 128 };
+          if (name === 'fn_ranking_turmas_faltas_parametrizado' && window.__rankingFailure) return { data: null, error: { code: '57014', message: 'canceling statement due to statement timeout' } };
           let data = [];
           if (name === 'fn_iee_acesso_autorizado') data = true;
           if (name === 'fn_iee_painel_resumo_turmas' || name === 'fn_ranking_turmas_faltas_parametrizado' || name === 'fn_frequencia_diaria_parametrizada') data = [base];
@@ -69,8 +70,21 @@ try {
   const startup = await page.evaluate(() => window.__calls.map(r => r.name));
   assert.deepEqual(startup.sort(), ['fn_iee_acesso_autorizado', 'fn_iee_painel_resumo_turmas', 'fn_painel_cache_frequencia'].sort());
   await openView('dashboard');
+  assert.equal(await page.evaluate(() => window.__calls.filter(r => r.name === 'fn_ranking_turmas_faltas_parametrizado').length), 0);
+  assert.match(await page.locator('#dashboard-data-status').innerText(), /datas não são aplicadas/);
+  await page.locator('#apply-filters').click();
+  await page.waitForFunction(() => document.querySelector('#loading').classList.contains('hidden'));
+  assert.match(await page.locator('#dashboard-data-status').innerText(), /concluído para as datas/);
   assert.equal(await page.locator('#class-table-body tr').count(), 1);
   assert.match(await page.locator('#class-table-body').innerText(), /601/);
+  await page.evaluate(() => { window.__rankingFailure = true; });
+  await page.locator('#apply-filters').click();
+  await page.waitForFunction(() => document.querySelector('#loading').classList.contains('hidden'));
+  assert.match(await page.locator('#dashboard-data-status').innerText(), /Consulta não concluída/);
+  assert.match(await page.locator('#dashboard-data-status').innerText(), /último relatório concluído/);
+  await page.locator('#dashboard-consolidated').click();
+  await page.waitForFunction(() => document.querySelector('#loading').classList.contains('hidden'));
+  assert.match(await page.locator('#dash-eva-periodo').innerText(), /sem filtro por datas/);
   await page.screenshot({ path: 'test-results/desktop.png', fullPage: true, animations: 'disabled' });
   const layouts = [];
   for (const width of [768, 390, 320]) {

@@ -1,4 +1,5 @@
 /* Ajustes de leitura e interação, carregados depois do tema original. */
+.report-data-status { padding: 14px 16px; border-left: 4px solid #1976d2; border-radius: 8px; background: #edf5ff; color: #193b60; line-height: 1.5; }
 body.iee-portal-ui .content-area { min-width: 0; }
 body.iee-portal-ui .section-heading h2 { letter-spacing: -.025em; line-height: 1.2; }
 body.iee-portal-ui .filter-card {

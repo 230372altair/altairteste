@@ -1,3 +1,19 @@
+export async function readWithDeadline(operation, timeoutMs = 15000) {
+  const controller = new AbortController();
+  let timer;
+  try {
+    return await Promise.race([
+      Promise.resolve().then(() => operation(controller.signal)),
+      new Promise((_, reject) => {
+        timer = setTimeout(() => {
+          reject(new Error('A consulta excedeu o tempo de espera. Reduza o período ou consulte uma turma por vez.'));
+          controller.abort();
+        }, timeoutMs);
+      })
+    ]);
+  } finally { clearTimeout(timer); }
+}
+
 // Compartilha apenas consultas em andamento: não guarda relatórios antigos.
 export function createReadCoordinator(limit = 6) {
   const pending = new Map();

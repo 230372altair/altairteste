@@ -1,6 +1,21 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createReadCoordinator, mapWithConcurrency } from '../public/report-requests.js';
+import { createReadCoordinator, mapWithConcurrency, readWithDeadline } from '../public/report-requests.js';
+
+test('consulta que não responde é abortada e libera a fila', async () => {
+  const read = createReadCoordinator(1);
+  let signal;
+  const stalled = read('lento', {}, () => readWithDeadline(s => { signal = s; return new Promise(() => {}); }, 10));
+  const next = read('seguinte', {}, () => 'ok');
+  await assert.rejects(stalled, /tempo de espera/);
+  assert.equal(signal.aborted, true);
+  assert.equal(await next, 'ok');
+});
+
+test('consulta concluída mantém o resultado e erro do servidor não é ocultado', async () => {
+  assert.deepEqual(await readWithDeadline(() => ({ data: [1] })), { data: [1] });
+  await assert.rejects(readWithDeadline(() => Promise.reject(new Error('57014'))), /57014/);
+});
 
 test('consultas iguais compartilham o pedido em andamento, mas consultam novamente depois', async () => {
   const read = createReadCoordinator(2);

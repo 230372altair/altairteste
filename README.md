@@ -11,10 +11,13 @@ Sirva `public` por HTTP, por exemplo com `npx serve public`. Os relatórios reai
 ## Melhorias
 
 - Relatórios carregados ao abrir a respectiva tela, sem consultas pesadas durante a entrada.
+- A visão gerencial abre o resumo das bases já carregadas, explicitamente sem filtro de datas. O botão Consultar período faz uma consulta específica; em caso de erro, não substitui o intervalo por um consolidado diferente.
+- Leituras têm limite de espera de 15 segundos e são canceladas no cliente. O erro SQL `57014` é informado; a otimização das funções e índices do Supabase ainda exige análise no servidor.
 - Até seis consultas de leitura simultâneas, compartilhando pedidos idênticos em andamento. Não há cache persistente de relatórios.
 - Relatório APOIA com até três alunos sendo preparados por vez e consultas de contato, faltas e histórico em paralelo.
 - Janela de impressão aberta durante o clique para evitar bloqueios após a espera pelos dados.
 - Filtros responsivos, tabelas com rolagem e foco pelo teclado, botões maiores no celular e saída da conta disponível no menu móvel.
+- APOIA padroniza os nomes dos campos de faltas e sequência já reconhecidos pelo relatório individual, usando os mesmos totais na tabela, indicadores e exportação.
 
 ## Verificar
 

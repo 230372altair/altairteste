@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { createReadCoordinator, mapWithConcurrency } from "./report-requests.js";
+import { createReadCoordinator, mapWithConcurrency, readWithDeadline } from "./report-requests.js";
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, ANO_LETIVO } from "./supabase-config.js";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
@@ -150,7 +150,7 @@ function setupNavigation() {
 async function abrirVisao(view) {
   setView(view);
   const carregar = {
-    dashboard: renderDashboard,
+    dashboard: () => renderDashboard({ consolidated: true }),
     "daily-attendance": renderDaily,
     sectors: renderSectors,
     history: renderHistory,
@@ -172,7 +172,11 @@ const reportReads = new Set([
 ]);
 async function rpc(name, args) {
   const request = async () => {
-    const { data, error } = await supabase.rpc(name, args);
+    const execute = signal => {
+      const operation = supabase.rpc(name, args);
+      return signal && typeof operation.abortSignal === "function" ? operation.abortSignal(signal) : operation;
+    };
+    const { data, error } = await (reportReads.has(name) ? readWithDeadline(execute) : execute());
     if (error) throw error;
     return data || [];
   };
@@ -265,7 +269,8 @@ function normalizeDashboardRow(row) {
 }
 
 async function carregarDashboardConsolidadoFallback(sector = "", turma = "") {
-  const data = await rpc("fn_iee_painel_resumo_turmas", {});
+  // Resumo já obtido na entrada. Não representa um intervalo personalizado.
+  const data = state.classes;
   return (data || [])
     .filter(r => !sector || String(r.coordenacao_codigo || r.setorId || r.coordenacao_nome || r.setor || "") === String(sector) || String(r.coordenacao_nome || r.setor || "").toLowerCase().includes(String(sector).toLowerCase()))
     .filter(r => !turma || String(r.turma || "") === String(turma))
@@ -846,8 +851,10 @@ function renderClassTable(rows) {
   }).join("") || emptyCell("Gere um relatório.", 12);
   $$('[data-dashboard-class]').forEach(b => b.addEventListener("click", () => loadDashboardStudents(b.dataset.dashboardClass)));
 }
-async function renderDashboard() {
+async function renderDashboard({ consolidated = false } = {}) {
   setLoading(true);
+  const status = $("#dashboard-data-status");
+  if (status) status.textContent = consolidated ? "Preparando resumo consolidado..." : "Consultando o período selecionado...";
   try {
     const sector = $("#dashboard-sector-filter")?.value || "";
     const turma = $("#dashboard-class-filter")?.value || "";
@@ -882,24 +889,36 @@ async function renderDashboard() {
       $$('[data-student-action="card"]').forEach(b => b.addEventListener("click", () => { setView("attendance-card"); loadAttendanceCard(b.dataset.matricula, b.dataset.turma); }));
       $("#class-count-label").textContent = "Filtro individual";
       $("#class-table-body").innerHTML = emptyCell("Relatório em nível de aluno gerado no quadro Alunos / relatório individual.", 12);
+      if (status) status.textContent = "Consulta individual concluída para as datas selecionadas.";
       return;
     }
 
     let rows = [];
-    try {
-      rows = await rpc("fn_ranking_turmas_faltas_parametrizado", { p_ano_letivo: ANO_LETIVO, p_data_inicio: start, p_data_fim: end, p_coordenacao_codigo: sector, p_limite: 300 });
-    } catch (rpcError) {
-      console.warn("Falha no RPC de visão gerencial; usando cache consolidado.", rpcError);
+    if (consolidated) {
       rows = await carregarDashboardConsolidadoFallback(sector, turma);
+    } else {
+      const querySector = sector || (turma ? state.classes.find(c => String(c.turma) === String(turma))?.setorId || "" : "");
+      rows = await rpc("fn_ranking_turmas_faltas_parametrizado", { p_ano_letivo: ANO_LETIVO, p_data_inicio: start, p_data_fim: end, p_coordenacao_codigo: querySector, p_limite: 300 });
     }
     state.dashboardClasses = rows.filter(r => !turma || String(r.turma) === turma).map(normalizeDashboardRow);
     const dashboardTotal = dashboardTotalsFromRows(state.dashboardClasses);
     updateDashboardKpis(dashboardTotal);
-    updateDashboardEvaOverview(dashboardTotal, dashboardMetaFromClassRows(state.dashboardClasses, start, end, sector, turma));
+    const meta = dashboardMetaFromClassRows(state.dashboardClasses, start, end, sector, turma);
+    if (consolidated) meta.periodo = "Base consolidada das turmas — sem filtro por datas.";
+    updateDashboardEvaOverview(dashboardTotal, meta);
+    if (status) status.textContent = consolidated
+      ? "Resumo da base carregada na entrada, com filtros de setor e turma. As datas não são aplicadas. Use Consultar período para aplicar as datas."
+      : "Relatório concluído para as datas selecionadas.";
     renderDashboardHierarchy(state.dashboardClasses);
     renderClassTable(state.dashboardClasses);
     $("#hierarchy-student-body").innerHTML = `<div class="empty-cell">Clique em uma turma para carregar a relação nominal dos alunos, ou selecione um aluno nos filtros acima e gere novamente.</div>`;
-  } catch(e) { toast(`Erro ao gerar visão gerencial: ${e.message}`, "error"); }
+  } catch(e) {
+    const message = String(e.code) === "57014"
+      ? "O Supabase excedeu o tempo limite. Reduza o período ou consulte uma turma por vez."
+      : e.message;
+    if (status) status.textContent = `Consulta não concluída: ${message} Os quadros abaixo mantêm o último relatório concluído. Você também pode abrir o resumo consolidado, sem filtro de datas.`;
+    toast(`Erro ao gerar visão gerencial: ${message}`, "error");
+  }
   finally { setLoading(false); }
 }
 function renderDashboardStudentRows(rows) {
@@ -2425,6 +2444,7 @@ function openReportWindow() {
 function setupActions() {
   $("#refresh-dashboard")?.addEventListener("click", async()=>{ await loadBase(); setupSelectors(); toast("Bases Supabase recarregadas."); });
   $("#apply-filters")?.addEventListener("click", renderDashboard);
+  $("#dashboard-consolidated")?.addEventListener("click", () => renderDashboard({ consolidated: true }));
   $("#dashboard-class-filter")?.addEventListener("change", handleDashboardClassChange);
   $("#dashboard-student-list")?.addEventListener("change", () => { if ($("#dashboard-student-list")?.value && $("#dashboard-student-search")) $("#dashboard-student-search").value = ""; });
   $("#print-dashboard")?.addEventListener("click", () => window.print());
