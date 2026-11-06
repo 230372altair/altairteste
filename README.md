@@ -17,6 +17,7 @@ Sirva `public` por HTTP, por exemplo com `npx serve public`. Os relatórios reai
 - Relatório APOIA com até três alunos sendo preparados por vez e consultas de contato, faltas e histórico em paralelo.
 - Janela de impressão aberta durante o clique para evitar bloqueios após a espera pelos dados.
 - Filtros responsivos, tabelas com rolagem e foco pelo teclado, botões maiores no celular e saída da conta disponível no menu móvel.
+- Em telas estreitas, o menu abre um grupo por vez e os relatórios simples são apresentados como cartões com os nomes das colunas. Calendários e tabelas com cabeçalhos compostos mantêm rolagem própria. Indicadores permitem números grandes sem sobreposição.
 - APOIA padroniza os nomes dos campos de faltas e sequência já reconhecidos pelo relatório individual, usando os mesmos totais na tabela, indicadores e exportação.
 
 ## Verificar
