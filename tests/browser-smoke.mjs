@@ -74,7 +74,7 @@ try {
   assert.deepEqual(startup.sort(), ['fn_iee_acesso_autorizado', 'fn_iee_painel_resumo_turmas', 'fn_painel_cache_frequencia'].sort());
   await openView('dashboard');
   assert.equal(await page.evaluate(() => window.__calls.filter(r => r.name === 'fn_ranking_turmas_faltas_parametrizado').length), 0);
-  assert.match(await page.locator('#dashboard-data-status').innerText(), /datas não são aplicadas/);
+  assert.equal(await page.locator('#dashboard-data-status').innerText(), '');
   await page.locator('#apply-filters').click();
   await page.waitForFunction(() => document.querySelector('#loading').classList.contains('hidden'));
   assert.match(await page.locator('#dashboard-data-status').innerText(), /concluído para as datas/);

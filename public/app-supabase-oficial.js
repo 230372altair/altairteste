@@ -907,7 +907,7 @@ async function renderDashboard({ consolidated = false } = {}) {
     if (consolidated) meta.periodo = "Base consolidada das turmas — sem filtro por datas.";
     updateDashboardEvaOverview(dashboardTotal, meta);
     if (status) status.textContent = consolidated
-      ? "Resumo da base carregada na entrada, com filtros de setor e turma. As datas não são aplicadas. Use Consultar período para aplicar as datas."
+      ? ""
       : "Relatório concluído para as datas selecionadas.";
     renderDashboardHierarchy(state.dashboardClasses);
     renderClassTable(state.dashboardClasses);

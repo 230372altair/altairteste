@@ -10,9 +10,9 @@
 <link href="https://cdn.jsdelivr.net" rel="preconnect"/>
 <link href="favicon.ico" rel="icon" sizes="any"/>
 <link href="styles.css?v=20261022-mobile-final-3" rel="stylesheet"/>
-<link href="responsive.css?v=20261106-slim" rel="stylesheet"/>
+<link href="responsive.css?v=20261106-limpo" rel="stylesheet"/>
 <script defer="" src="https://cdn.jsdelivr.net/npm/chart.js@4.4.9/dist/chart.umd.min.js"></script>
-<script src="app-supabase-oficial.js?v=20261106" type="module"></script>
+<script src="app-supabase-oficial.js?v=20261106-limpo" type="module"></script>
 <script src="mobile-menu.js?v=20261106-android2" defer></script>
 <script src="mobile-reports.js?v=20261106-android2" defer></script>
 </head>
@@ -160,10 +160,6 @@
         <span class="iee-home-v44-eyebrow">Instituto Estadual de Educação</span>
         <h1>Frequência Escolar</h1>
         
-        <div class="iee-home-v44-hero-actions">
-          <button class="button primary" data-open-view="dashboard" type="button">Abrir visão gerencial</button>
-          <button class="button secondary" data-open-view="new-service" type="button">Registrar atendimento</button>
-        </div>
       </div>
       
     </section>
@@ -181,37 +177,31 @@
         <button class="iee-home-v44-module" data-open-view="dashboard" type="button">
           <span class="iee-home-v44-module-icon" aria-hidden="true">▥</span>
           <div><strong>Visão gerencial</strong></div>
-          <span class="iee-home-v44-arrow" aria-hidden="true">›</span>
         </button>
 
         <button class="iee-home-v44-module" data-open-view="daily-attendance" type="button">
           <span class="iee-home-v44-module-icon" aria-hidden="true">✓</span>
           <div><strong>Frequências</strong></div>
-          <span class="iee-home-v44-arrow" aria-hidden="true">›</span>
         </button>
 
         <button class="iee-home-v44-module" data-open-view="students" type="button">
           <span class="iee-home-v44-module-icon" aria-hidden="true">◉</span>
           <div><strong>Alunos</strong></div>
-          <span class="iee-home-v44-arrow" aria-hidden="true">›</span>
         </button>
 
         <button class="iee-home-v44-module" data-open-view="absence-alert" type="button">
           <span class="iee-home-v44-module-icon" aria-hidden="true">!</span>
           <div><strong>Programa APOIA</strong></div>
-          <span class="iee-home-v44-arrow" aria-hidden="true">›</span>
         </button>
 
         <button class="iee-home-v44-module" data-open-view="sectors" type="button">
           <span class="iee-home-v44-module-icon" aria-hidden="true">▦</span>
           <div><strong>Turmas</strong></div>
-          <span class="iee-home-v44-arrow" aria-hidden="true">›</span>
         </button>
 
         <button class="iee-home-v44-module admin-home-card" data-open-view="admin" id="home-admin-card" type="button">
           <span class="iee-home-v44-module-icon" aria-hidden="true">⚙</span>
           <div><strong>Administração</strong></div>
-          <span class="iee-home-v44-arrow" aria-hidden="true">›</span>
         </button>
       </div>
     </section>
@@ -454,32 +444,32 @@
   <button class="student-portal-shortcut active" data-open-view="students" type="button">
     <span class="student-shortcut-icon">⌕</span>
     <strong>Buscar aluno</strong>
-    <small>Nome, matrícula, setor ou turma</small>
+    
   </button>
   <button class="student-portal-shortcut" data-open-view="new-service" type="button">
     <span class="student-shortcut-icon">＋</span>
     <strong>Novo atendimento</strong>
-    <small>Registrar atendimento e providências</small>
+    
   </button>
   <button class="student-portal-shortcut" data-open-view="history" type="button">
     <span class="student-shortcut-icon">✎</span>
     <strong>Histórico</strong>
-    <small>Observações e atendimentos anteriores</small>
+    
   </button>
   <button class="student-portal-shortcut" data-open-view="absence-alert" type="button">
     <span class="student-shortcut-icon">!</span>
     <strong>Programa APOIA</strong>
-    <small>Critérios, alertas e Conselho Tutelar</small>
+    
   </button>
   <button class="student-portal-shortcut" data-open-view="daily-attendance" type="button">
     <span class="student-shortcut-icon">✓</span>
     <strong>Frequência</strong>
-    <small>Relatórios diários e por período</small>
+    
   </button>
   <button class="student-portal-shortcut" data-open-view="attendance-card" type="button">
     <span class="student-shortcut-icon">▦</span>
     <strong>Cartão</strong>
-    <small>Emitir cartão individual de frequência</small>
+    
   </button>
 </div>
 
@@ -501,7 +491,7 @@
 <button class="button secondary" id="quick-student-clear" type="button">Limpar</button>
 </div>
 </div>
-<p class="card-help-note">Selecione setor, turma e aluno para emitir diretamente, ou use a busca rápida por nome/matrícula quando não souber a turma.</p>
+
 <div class="table-wrap quick-results">
 <table>
 <thead><tr><th>Aluno</th><th>Matrícula</th><th>Turma</th><th>Setor</th><th>Status</th><th>Ação</th></tr></thead>
@@ -894,7 +884,7 @@
 <button class="button primary" id="card-search-button" type="button">Localizar</button>
 </div>
 </div>
-<p class="card-help-note">Selecione setor, turma e aluno para emitir diretamente, ou use a busca rápida por nome/matrícula quando não souber a turma.</p>
+
 <div class="table-wrap quick-results">
 <table>
 <thead><tr><th>Aluno</th><th>Matrícula</th><th>Turma</th><th>Setor</th><th>Status</th><th>Ação</th></tr></thead>
@@ -1508,3 +1498,5 @@
 <section aria-hidden="true" id="council-report-root"></section>
 </body>
 </html>
+
+
