@@ -39,7 +39,7 @@ await context.route('**/*', async route => {
           let data = [];
           if (name === 'fn_iee_acesso_autorizado') data = true;
           if (name === 'fn_iee_painel_resumo_turmas' || name === 'fn_ranking_turmas_faltas_parametrizado' || name === 'fn_frequencia_diaria_parametrizada') data = [base];
-          if (name === 'fn_relatorio_apoia_parametrizado') data = Array.from({ length: 12 }, (_, i) => ({ ...base, aluno_nome: 'Estudante fictício ' + i, matricula: 'TESTE-' + i, maior_sequencia_f: 5, criterio_acionamento: 'CONSEC' }));
+          if (name === 'fn_relatorio_apoia_parametrizado') data = Array.from({ length: 12 }, (_, i) => ({ turma: base.turma, coordenacao_nome: base.coordenacao_nome, aluno_nome: 'Estudante fictício ' + i, matricula: 'TESTE-' + i, faltas_no_periodo: 8, maior_sequencia: 5, criterio_acionamento: 'CONSEC' }));
           return { data, error: null };
         }
       };
@@ -93,6 +93,9 @@ try {
   await page.locator('#absence-alert-generate').click();
   await page.waitForFunction(() => document.querySelector('#loading').classList.contains('hidden'));
   assert.equal(await page.locator('#absence-alert-body tr').count(), 12);
+  assert.equal(await page.locator('#absence-alert-max').innerText(), '8');
+  assert.equal(await page.locator('#absence-alert-body tr').first().locator('td').nth(4).innerText(), '8');
+  assert.equal(await page.locator('#absence-alert-body tr').first().locator('td').nth(5).innerText(), '5');
   const popupPromise = page.waitForEvent('popup');
   await page.locator('#absence-council-report-all').click();
   const popup = await popupPromise;

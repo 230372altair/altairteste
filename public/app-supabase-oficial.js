@@ -1501,7 +1501,8 @@ async function renderAbsenceAlert() {
     const turma = $("#absence-class-filter")?.value || "";
     const data = await rpc("fn_relatorio_apoia_parametrizado", { p_ano_letivo: ANO_LETIVO, p_data_inicio: start, p_data_fim: ref, p_faltas_consecutivas: faltasCons, p_faltas_alternadas: faltasAlt, p_coordenacao_codigo: sector, p_turma: turma });
     const alunoSelecionado = $("#absence-student-list")?.value || "";
-    const rows = alunoSelecionado ? data.filter(r => String(r.matricula || "") === String(alunoSelecionado)) : data;
+    const rows = (alunoSelecionado ? data.filter(r => String(r.matricula || "") === String(alunoSelecionado)) : data)
+      .map(row => ({ ...row, total_f: numeroFaltasApoia(row), maior_sequencia_f: maiorSequenciaApoia(row) }));
     state.absenceAlerts = rows;
     $("#absence-rule-alt-title") && ($("#absence-rule-alt-title").textContent = `Mais de ${String(faltasAlt).padStart(2,"0")} faltas intercaladas`);
     $("#absence-rule-alt-text") && ($("#absence-rule-alt-text").textContent = `Conta código F no intervalo de ${dias} dia(s) anteriores à data de referência.`);
