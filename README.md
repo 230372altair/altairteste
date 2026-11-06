@@ -12,7 +12,7 @@ Sirva `public` por HTTP, por exemplo com `npx serve public`. Os relatórios reai
 
 - Relatórios carregados ao abrir a respectiva tela, sem consultas pesadas durante a entrada.
 - A visão gerencial abre o resumo das bases já carregadas, explicitamente sem filtro de datas. O botão Consultar período faz uma consulta específica; em caso de erro, não substitui o intervalo por um consolidado diferente.
-- Leituras têm limite de espera de 15 segundos e são canceladas no cliente. O erro SQL `57014` é informado; a otimização das funções e índices do Supabase ainda exige análise no servidor.
+- Leituras têm limite de espera de 15 segundos e são canceladas no cliente. O erro SQL `57014` é informado. A função do ranking foi otimizada no Supabase; migrações, testes de equivalência e medições estão em [supabase/OTIMIZACAO_RELATORIOS.md](supabase/OTIMIZACAO_RELATORIOS.md).
 - Até seis consultas de leitura simultâneas, compartilhando pedidos idênticos em andamento. Não há cache persistente de relatórios.
 - Relatório APOIA com até três alunos sendo preparados por vez e consultas de contato, faltas e histórico em paralelo.
 - Janela de impressão aberta durante o clique para evitar bloqueios após a espera pelos dados.
@@ -29,4 +29,4 @@ O teste cobre entrada sem pré-carregar relatórios, visão gerencial, frequênc
 
 ## Publicar
 
-`firebase.json` aponta para `public`. A configuração do projeto Firebase e a publicação são passos separados, sem deploy automático. Antes da publicação, validar os relatórios com uma conta autorizada e dados reais. O tempo de execução das funções SQL no servidor não foi medido pelos testes com dados fictícios.
+`firebase.json` aponta para `public`. A configuração do projeto Firebase e a publicação são passos separados, sem deploy automático. As melhorias de interface foram publicadas em 06/11/2026. A otimização SQL foi validada separadamente com consultas reais e equivalência de resultados; os tempos variam conforme carga e cache do servidor.
