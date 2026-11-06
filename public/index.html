@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<meta content="noindex,nofollow" name="robots"/>
+<title>Painel de Frequência — IEE Supabase</title>
+<link href="https://www.gstatic.com" rel="preconnect"/>
+<link href="https://cdn.jsdelivr.net" rel="preconnect"/>
+<link href="favicon.ico" rel="icon" sizes="any"/>
+<link href="styles.css?v=20261022-mobile-final-3" rel="stylesheet"/>
+<script defer="" src="https://cdn.jsdelivr.net/npm/chart.js@4.4.9/dist/chart.umd.min.js"></script>
+<script src="app-supabase-oficial.js?v=20261022-restaurado" type="module"></script>
+<script src="mobile-menu.js?v=20261022-mobile-final-3" defer></script>
+</head>
+<body class="iee-modern-theme iee-pro-ui iee-portal-ui visual-premium-futurista home-original-override-final home-body-corrigido-final home-recriada-final">
+<div aria-live="polite" class="toast" id="toast" role="status"></div>
+<div aria-hidden="true" class="loading hidden" id="loading">
+<div class="spinner"></div>
+<span>Processando...</span>
+</div>
+<main class="auth-layout hidden" id="auth-view">
+<section class="brand-panel iee-login-hero">
+<div class="iee-login-logo-wrap">
+<img alt="Logo do Instituto Estadual de Educação" class="iee-logo-img" src="logo-iee.jpg"/>
+<div>
+<span class="iee-eyebrow">Instituto Estadual de Educação</span>
+<strong>IEE — desde 1935</strong>
+</div>
+</div>
+<h1>Gestão da Frequência Escolar</h1>
+<p>Ambiente institucional para acompanhamento pedagógico, controle de presença, Programa APOIA e relatórios operacionais do IEE.</p>
+<div class="security-note iee-security-note">
+<strong>Acesso institucional restrito.</strong>
+<span>As permissões são liberadas conforme o perfil do usuário, coordenação e turmas autorizadas.</span>
+</div>
+</section>
+<section class="auth-card">
+<div class="auth-tabs">
+<button class="tab-button active" id="tab-login" type="button">Entrar</button>
+<button class="tab-button" id="tab-register" type="button">Solicitar acesso</button>
+</div>
+<form class="form-stack" id="login-form">
+<label>E-mail
+          <input autocomplete="email" id="login-email" required="" type="email"/>
+</label>
+<label>Senha
+          <input autocomplete="current-password" id="login-password" minlength="6" required="" type="password"/>
+</label>
+<button class="button primary" type="submit">Entrar</button>
+<button class="link-button" id="forgot-password" type="button">Esqueci minha senha</button>
+</form>
+<form class="form-stack hidden" id="register-form">
+<label>Nome completo
+          <input autocomplete="name" id="register-name" required="" type="text"/>
+</label>
+<label>E-mail
+          <input autocomplete="email" id="register-email" required="" type="email"/>
+</label>
+<label>Senha
+          <input autocomplete="new-password" id="register-password" minlength="8" required="" type="password"/>
+</label>
+<button class="button primary" type="submit">Criar conta e solicitar acesso</button>
+<p class="helper">Após o cadastro, confirme o e-mail. O acesso aos dados dependerá de aprovação administrativa.</p>
+</form>
+<form class="form-stack hidden" id="reset-form">
+<h2>Definir nova senha</h2>
+<label>Nova senha<input autocomplete="new-password" id="reset-password" minlength="8" required="" type="password"/></label>
+<button class="button primary" type="submit">Salvar nova senha</button>
+</form>
+</section>
+</main>
+<main class="centered-layout hidden" id="pending-view">
+<section class="status-card">
+<div class="status-icon">⏳</div>
+<h2 id="pending-title">Acesso pendente</h2>
+<p id="pending-message">Sua conta foi criada, mas ainda não recebeu um perfil de acesso.</p>
+<div class="button-row center">
+<button class="button secondary hidden" id="resend-verification" type="button">Reenviar confirmação</button>
+<button class="button secondary" id="pending-refresh" type="button">Atualizar situação</button>
+<button class="button danger ghost" id="pending-logout" type="button">Sair</button>
+</div>
+</section>
+</main>
+<div class="app-shell hidden" id="app-view">
+<header class="topbar iee-portal-header">
+<div class="portal-utility-bar">
+<div class="portal-shell">
+<div class="portal-system-label">IEE • Gestão Escolar</div>
+<div class="portal-utility-right">
+<span class="sync-label" id="sync-label">Supabase</span>
+<button class="button ghost" id="logout-button" type="button">Sair</button>
+</div>
+</div>
+</div>
+<div class="portal-brand-band"><button class="mobile-menu-toggle" id="mobile-menu-toggle" type="button" aria-label="Abrir menu" aria-controls="mobile-navigation" aria-expanded="false">&#9776;</button>
+<div class="portal-brand-center">
+<img alt="Logo do IEE" class="portal-brand-logo" decoding="async" src="logo-iee.jpg"/>
+<div class="portal-brand-text">
+<span>Instituto Estadual de Educação</span>
+<strong>Frequência Escolar</strong>
+<small id="profile-label">Usuário autorizado</small>
+</div>
+</div>
+</div>
+</header>
+<div class="app-body">
+<div class="mobile-menu-backdrop" id="mobile-menu-backdrop" aria-hidden="true"></div><aside class="sidebar iee-portal-nav" id="mobile-navigation">
+<div class="portal-shell portal-nav-inner">
+<button class="nav-button active" data-view="home" type="button">INÍCIO</button>
+<button class="nav-button" data-view="dashboard" type="button">VISÃO GERENCIAL</button>
+<button class="nav-button" data-view="daily-attendance" type="button">FREQUÊNCIAS</button>
+
+<div class="portal-nav-group" data-nav-group="students">
+  <button class="nav-button portal-nav-parent" data-view="students" type="button">ALUNOS <span aria-hidden="true">▾</span></button>
+  <div class="portal-submenu" role="menu" aria-label="Menu de alunos">
+    <button data-view="students" type="button">Buscar / ficha do aluno</button>
+    <button data-view="new-service" type="button">Registrar novo atendimento</button>
+    <button data-view="history" type="button">Histórico de atendimentos</button>
+    <button data-view="attendance-card" type="button">Cartão de frequência</button>
+    <button data-view="daily-attendance" type="button">Relatório de frequência</button>
+  </div>
+</div>
+
+<div class="portal-nav-group" data-nav-group="apoia">
+  <button class="nav-button portal-nav-parent" data-view="absence-alert" type="button">APOIA <span aria-hidden="true">▾</span></button>
+  <div class="portal-submenu" role="menu" aria-label="Menu APOIA">
+    <button data-view="absence-alert" type="button">Painel e critérios APOIA</button>
+    <button data-view="new-service" type="button">Registrar novo atendimento</button>
+    <button data-view="history" type="button">Histórico de atendimentos</button>
+    <button data-view="attendance-card" type="button">Cartão do aluno</button>
+  </div>
+</div>
+
+<button class="nav-button" data-view="sectors" type="button">TURMAS</button>
+
+<div class="portal-nav-group" data-nav-group="admin">
+  <button class="nav-button portal-nav-parent" data-view="admin" id="admin-nav" type="button">ADMINISTRAÇÃO <span aria-hidden="true">▾</span></button>
+  <div class="portal-submenu" role="menu" aria-label="Menu de administração">
+    <button data-view="admin" type="button">Resumo administrativo</button>
+    <button data-view="migration-diagnostic" id="migration-diagnostic-nav" type="button">Diagnóstico de migração</button>
+    <button data-view="migration-audit-general" id="migration-audit-general-nav" type="button">Auditoria geral</button>
+    <button data-view="admin-details" id="admin-details-nav" type="button">Detalhes técnicos</button>
+  </div>
+</div>
+
+</div>
+</aside>
+<section class="content-area">
+
+
+<section class="view-section portal-home-section iee-home-premium-section" id="home-section">
+  <div class="iee-home-v44-shell">
+
+    <section class="iee-home-v44-hero" aria-label="Apresentação do sistema">
+      <div class="iee-home-v44-hero-copy">
+        <span class="iee-home-v44-eyebrow">Instituto Estadual de Educação</span>
+        <h1>Gestão da Frequência Escolar</h1>
+        <p>Acompanhe frequência, estudantes, atendimentos pedagógicos e Programa APOIA em um único ambiente institucional.</p>
+        <div class="iee-home-v44-hero-actions">
+          <button class="button primary" data-open-view="dashboard" type="button">Abrir visão gerencial</button>
+          <button class="button secondary" data-open-view="new-service" type="button">Registrar atendimento</button>
+        </div>
+      </div>
+      <aside class="iee-home-v44-context" aria-label="Recursos disponíveis">
+        <span class="iee-home-v44-context-badge">PAINEL IEE</span>
+        <strong>Informação organizada para acompanhamento pedagógico.</strong>
+        <div class="iee-home-v44-context-list">
+          <span>Frequência diária e por período</span>
+          <span>Ficha e cartão do estudante</span>
+          <span>APOIA e histórico de atendimentos</span>
+        </div>
+      </aside>
+    </section>
+
+    <section class="iee-home-v44-block" aria-label="Acessos principais">
+      <div class="iee-home-v44-heading">
+        <div>
+          <span>Acesso rápido</span>
+          <h2>Módulos principais</h2>
+        </div>
+        <p>Entre diretamente na área que deseja consultar ou atualizar.</p>
+      </div>
+
+      <div class="iee-home-v44-modules">
+        <button class="iee-home-v44-module" data-open-view="dashboard" type="button">
+          <span class="iee-home-v44-module-icon" aria-hidden="true">▥</span>
+          <div><strong>Visão gerencial</strong><small>Indicadores consolidados por período, setor e turma.</small></div>
+          <span class="iee-home-v44-arrow" aria-hidden="true">›</span>
+        </button>
+
+        <button class="iee-home-v44-module" data-open-view="daily-attendance" type="button">
+          <span class="iee-home-v44-module-icon" aria-hidden="true">✓</span>
+          <div><strong>Frequências</strong><small>Frequência diária, relatórios e acompanhamento por período.</small></div>
+          <span class="iee-home-v44-arrow" aria-hidden="true">›</span>
+        </button>
+
+        <button class="iee-home-v44-module" data-open-view="students" type="button">
+          <span class="iee-home-v44-module-icon" aria-hidden="true">◉</span>
+          <div><strong>Alunos</strong><small>Busca, ficha individual, contatos e histórico do estudante.</small></div>
+          <span class="iee-home-v44-arrow" aria-hidden="true">›</span>
+        </button>
+
+        <button class="iee-home-v44-module" data-open-view="absence-alert" type="button">
+          <span class="iee-home-v44-module-icon" aria-hidden="true">!</span>
+          <div><strong>Programa APOIA</strong><small>Critérios, alertas, acompanhamento e relatórios individuais.</small></div>
+          <span class="iee-home-v44-arrow" aria-hidden="true">›</span>
+        </button>
+
+        <button class="iee-home-v44-module" data-open-view="sectors" type="button">
+          <span class="iee-home-v44-module-icon" aria-hidden="true">▦</span>
+          <div><strong>Turmas</strong><small>Relação de estudantes e consultas por turma e setor.</small></div>
+          <span class="iee-home-v44-arrow" aria-hidden="true">›</span>
+        </button>
+
+        <button class="iee-home-v44-module admin-home-card" data-open-view="admin" id="home-admin-card" type="button">
+          <span class="iee-home-v44-module-icon" aria-hidden="true">⚙</span>
+          <div><strong>Administração</strong><small>Fontes de dados, atualizações, diagnóstico e gestão técnica.</small></div>
+          <span class="iee-home-v44-arrow" aria-hidden="true">›</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="iee-home-v44-quick" aria-label="Ações frequentes">
+      <div class="iee-home-v44-heading compact">
+        <div>
+          <span>Atalhos</span>
+          <h2>Ações frequentes</h2>
+        </div>
+      </div>
+      <div class="iee-home-v44-quick-grid">
+        <button data-open-view="new-service" type="button"><span>＋</span><div><strong>Novo atendimento</strong><small>Registrar acompanhamento de um estudante</small></div></button>
+        <button data-open-view="attendance-card" type="button"><span>▤</span><div><strong>Cartão de frequência</strong><small>Gerar histórico individual de frequência</small></div></button>
+        <button data-open-view="history" type="button"><span>◷</span><div><strong>Histórico de atendimentos</strong><small>Consultar registros já realizados</small></div></button>
+        <button data-open-view="absence-alert" type="button"><span>!</span><div><strong>Verificar APOIA</strong><small>Aplicar os critérios de acompanhamento</small></div></button>
+      </div>
+    </section>
+
+  </div>
+</section>
+
+<section class="view-section hidden" id="dashboard-section">
+<div class="section-heading">
+<div>
+<h2>Visão gerencial</h2>
+<p>Selecione período, setor, turma ou aluno para consolidar os indicadores.</p>
+</div>
+<div class="button-row">
+<button class="button secondary" id="refresh-dashboard" type="button">Atualizar bases</button>
+<button class="button secondary" id="print-dashboard" type="button">Imprimir</button>
+</div>
+</div>
+<div class="filter-card dashboard-filter-card">
+<label>Setor
+              <select id="dashboard-sector-filter">
+<option value="">Todos os setores autorizados</option>
+</select>
+</label>
+<label>Turma
+              <select id="dashboard-class-filter">
+<option value="">Todas as turmas autorizadas</option>
+</select>
+</label>
+<label>Aluno da turma
+              <select disabled="disabled" id="dashboard-student-list">
+<option value="">Selecione uma turma para carregar alunos</option>
+</select>
+</label>
+<label>Nome ou matrícula
+              <input id="dashboard-student-search" placeholder="Use apenas se não selecionar aluno" type="search"/>
+</label>
+<label>Data inicial
+              <input id="date-start" type="date"/>
+</label>
+<label>Data final
+              <input id="date-end" type="date"/>
+</label>
+<div class="filter-actions">
+<button class="button primary" id="apply-filters" type="button">Gerar relatório</button>
+<button class="button secondary" id="reset-period" type="button">Período padrão</button>
+</div>
+</div>
+<section class="dashboard-eva-overview" id="dashboard-eva-overview" aria-label="Resumo gerencial consolidado">
+  <div class="dashboard-eva-header">
+    <div>
+      <h3>Visão geral da frequência</h3>
+      <p id="dashboard-eva-scope">Resumo consolidado conforme filtros selecionados.</p>
+    </div>
+    <div class="dashboard-eva-meta">
+      <span id="dashboard-eva-updated">Aguardando geração do relatório</span>
+    </div>
+  </div>
+  <div class="dashboard-eva-kpis">
+    <article class="dashboard-eva-kpi"><span>Total de alunos</span><strong id="dash-eva-total-alunos">0</strong></article>
+    <article class="dashboard-eva-kpi"><span>Turmas consideradas</span><strong id="dash-eva-total-turmas">0</strong></article>
+    <article class="dashboard-eva-kpi"><span>Setores/coordenações</span><strong id="dash-eva-total-setores">0</strong></article>
+    <article class="dashboard-eva-kpi"><span>Total de lançamentos</span><strong id="dash-eva-total-lancamentos">0</strong></article>
+    <article class="dashboard-eva-kpi positive"><span>Presenças</span><strong id="dash-eva-presencas">0</strong></article>
+    <article class="dashboard-eva-kpi danger"><span>Faltas</span><strong id="dash-eva-faltas">0</strong></article>
+    <article class="dashboard-eva-kpi warning"><span>Atrasos</span><strong id="dash-eva-atrasos">0</strong></article>
+    <article class="dashboard-eva-kpi info"><span>Justificativas</span><strong id="dash-eva-justificativas">0</strong></article>
+    <article class="dashboard-eva-kpi"><span>Sem lançamento</span><strong id="dash-eva-sem-lancamento">0</strong></article>
+    <article class="dashboard-eva-kpi positive"><span>% frequência</span><strong id="dash-eva-percent-frequencia">0%</strong></article>
+    <article class="dashboard-eva-kpi danger"><span>% faltas</span><strong id="dash-eva-percent-faltas">0%</strong></article>
+  </div>
+  <div class="dashboard-eva-distribution">
+    <div class="dashboard-eva-donut" id="dashboard-eva-donut" style="--presence-pct:0%">
+      <div class="dashboard-eva-donut-center">
+        <span id="dashboard-eva-donut-label">0%</span>
+        <small>presenças</small>
+      </div>
+    </div>
+
+    <div class="dashboard-eva-legend">
+      <h4>Distribuição geral dos lançamentos</h4>
+
+      <div class="legend-line legend-presencas">
+        <strong>Presenças</strong>
+        <span id="dash-eva-legend-presencas">0 · 0%</span>
+      </div>
+
+      <div class="legend-line legend-faltas">
+        <strong>Faltas</strong>
+        <span id="dash-eva-legend-faltas">0 · 0%</span>
+      </div>
+
+      <p id="dash-eva-periodo">Período não gerado.</p>
+    </div>
+  </div>
+</section>
+
+<section class="hierarchy-panel-grid">
+<article class="panel-card hierarchy-card">
+<div class="card-heading">
+<h3>Geral</h3>
+<span id="hierarchy-general-label">Aguardando seleção</span>
+</div>
+<div class="hierarchy-body" id="hierarchy-general-body"><div class="empty-cell">Selecione os filtros e clique em Gerar relatório.</div></div>
+</article>
+<article class="panel-card hierarchy-card">
+<div class="card-heading">
+<h3>Grupos / setores</h3>
+<span id="hierarchy-sector-label">Hierarquia por grupo</span>
+</div>
+<div class="hierarchy-body" id="hierarchy-sector-body"><div class="empty-cell">Os grupos/setores serão exibidos após a geração do relatório.</div></div>
+</article>
+<article class="panel-card hierarchy-card">
+<div class="card-heading">
+<h3>Turmas</h3>
+<span id="hierarchy-class-label">Ranking por volume classificado</span>
+</div>
+<div aria-label="Lista de turmas. Clique em uma turma para carregar os alunos abaixo." class="hierarchy-body" id="hierarchy-class-body"><div class="empty-cell">As turmas serão exibidas após a geração do relatório.</div></div>
+</article>
+<article class="panel-card hierarchy-card dashboard-student-full-card dashboard-alunos-relatorio-card">
+<div class="card-heading">
+<h3>Alunos / relatório individual</h3>
+<span id="hierarchy-student-label">Clique em uma turma</span>
+</div>
+<div aria-label="Relatório da turma, alunos e cartão individual." class="hierarchy-body" id="hierarchy-student-body"><div class="empty-cell">Após gerar o relatório, clique em uma turma para carregar a relação nominal dos alunos.</div></div>
+</article>
+</section>
+<div class="kpi-grid official-grid minimal-kpi-grid dashboard-kpi-clean">
+<article class="kpi-card emphasis"><span>Total classificado</span><strong id="kpi-total">0</strong></article>
+<article class="kpi-card"><span>Alunos ativos</span><strong id="kpi-students">0</strong></article>
+<article class="kpi-card dashboard-kpi-percent"><span>Presenças</span><strong id="kpi-p">0</strong><small id="kpi-p-pct">0,0%</small></article>
+<article class="kpi-card dashboard-kpi-percent"><span>Faltas</span><strong id="kpi-f">0</strong><small id="kpi-f-pct">0,0%</small></article>
+<article class="kpi-card"><span>Atrasos</span><strong id="kpi-a">0</strong><small>A + AJ</small></article>
+<article class="kpi-card"><span>Justificativas</span><strong id="kpi-fj">0</strong><small>FJ + AD + JE + S</small></article>
+</div>
+<article class="panel-card">
+<div class="card-heading">
+<h3>Resumo das turmas</h3>
+<span id="class-count-label"></span>
+</div>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Turma</th><th>Setor</th><th>Alunos</th><th>Presenças</th><th>% P</th><th>Faltas</th><th>% F</th><th>Atrasos</th><th>Justificativas</th><th>Complementares</th><th>Total</th><th>Atualização</th></tr></thead>
+<tbody id="class-table-body"></tbody>
+</table>
+</div>
+</article>
+</section>
+<section class="view-section hidden" id="daily-attendance-section">
+<div class="section-heading">
+<div>
+<h2>Frequências diárias</h2>
+<p>Relatório diário consolidado: percentuais somente para presença e falta.</p>
+</div>
+<div class="button-row">
+<button class="button secondary" id="daily-export-csv" type="button">Exportar resumo</button>
+<button class="button secondary" id="daily-print" type="button">Imprimir</button>
+</div>
+</div>
+<article class="panel-card daily-command-card">
+<div class="filter-card daily-filter-card">
+<label>Data
+                <input id="daily-date" type="date"/>
+</label>
+<label class="daily-hidden-filter">Tipo de relatório
+                <select id="daily-report-type"><option selected="selected" value="geral">Geral</option></select>
+</label>
+<label>Grupo/Setor
+                <select id="daily-sector-filter">
+<option value="">Todos os setores autorizados</option>
+</select>
+</label>
+<label>Turma
+                <select id="daily-class-filter">
+<option value="">Todas as turmas autorizadas</option>
+</select>
+</label>
+<label>Aluno
+                <select disabled="disabled" id="daily-student-list"><option selected="selected" value="">Selecione uma turma para carregar alunos</option></select>
+</label>
+<div class="filter-actions">
+<button class="button primary" id="daily-apply" type="button">Gerar relatório</button>
+<button class="button secondary" id="daily-clear" type="button">Limpar</button>
+</div>
+</div>
+<div class="daily-read-note"><strong>Critério do relatório:</strong> somente o código F é falta. P, FJ, A, AJ, AD, JE, S e SC contam como presença. Sem lançamento não entra no cálculo percentual.</div>
+</article>
+<div class="kpi-grid daily-kpi-grid daily-kpi-grid-simple">
+<article class="kpi-card daily-kpi-card"><span>Alunos ativos</span><strong id="daily-kpi-total">0</strong></article>
+<article class="kpi-card daily-kpi-card"><span>Presenças</span><strong id="daily-kpi-presentes">0</strong><small id="daily-kpi-presentes-pct">—</small></article>
+<article class="kpi-card daily-kpi-card"><span>Faltas</span><strong id="daily-kpi-faltantes">0</strong><small id="daily-kpi-faltantes-pct">—</small></article>
+<article class="kpi-card daily-kpi-card emphasis"><span>Sem lançamento</span><strong id="daily-kpi-sem">0</strong></article>
+</div>
+<article class="panel-card daily-turnos-card">
+<div class="card-heading">
+<h3>Relatório geral e por turno</h3>
+<span id="daily-turnos-label">Gere um relatório para visualizar geral e turnos.</span>
+</div>
+<div class="daily-turno-chart-grid" id="daily-turno-charts"><div class="empty-cell">Gere o relatório para visualizar o resumo geral e os gráficos por turno.</div></div>
+</article>
+<article class="panel-card daily-turmas-card">
+<div class="card-heading">
+<h3>Relatório das turmas</h3>
+<span id="daily-group-count"></span>
+</div>
+<div class="table-wrap daily-summary-wrap">
+<table>
+<thead><tr><th>Turno</th><th>Coordenação</th><th>Turma</th><th>Aluno</th><th>Alunos ativos</th><th>Presenças</th><th>% Presença</th><th>Faltas</th><th>% Falta</th><th>Sem lançamento</th></tr></thead>
+<tbody id="daily-summary-body">
+<tr><td class="empty-cell" colspan="10">Gere um relatório diário.</td></tr>
+</tbody>
+</table>
+</div>
+</article>
+</section>
+<section class="view-section hidden" id="students-section">
+<div class="section-heading">
+<div>
+<h2>Acompanhamento do aluno</h2>
+<p>Localize o estudante uma única vez e acesse frequência, cartão, APOIA, atendimentos e histórico a partir do mesmo núcleo.</p>
+</div>
+<button class="button secondary" id="export-csv" type="button">Baixar planilha</button>
+</div>
+
+<div class="student-portal-shortcuts" aria-label="Atalhos do acompanhamento do aluno">
+  <button class="student-portal-shortcut active" data-open-view="students" type="button">
+    <span class="student-shortcut-icon">⌕</span>
+    <strong>Buscar aluno</strong>
+    <small>Nome, matrícula, setor ou turma</small>
+  </button>
+  <button class="student-portal-shortcut" data-open-view="new-service" type="button">
+    <span class="student-shortcut-icon">＋</span>
+    <strong>Novo atendimento</strong>
+    <small>Registrar atendimento e providências</small>
+  </button>
+  <button class="student-portal-shortcut" data-open-view="history" type="button">
+    <span class="student-shortcut-icon">✎</span>
+    <strong>Histórico</strong>
+    <small>Observações e atendimentos anteriores</small>
+  </button>
+  <button class="student-portal-shortcut" data-open-view="absence-alert" type="button">
+    <span class="student-shortcut-icon">!</span>
+    <strong>Programa APOIA</strong>
+    <small>Critérios, alertas e Conselho Tutelar</small>
+  </button>
+  <button class="student-portal-shortcut" data-open-view="daily-attendance" type="button">
+    <span class="student-shortcut-icon">✓</span>
+    <strong>Frequência</strong>
+    <small>Relatórios diários e por período</small>
+  </button>
+  <button class="student-portal-shortcut" data-open-view="attendance-card" type="button">
+    <span class="student-shortcut-icon">▦</span>
+    <strong>Cartão</strong>
+    <small>Emitir cartão individual de frequência</small>
+  </button>
+</div>
+
+<article class="panel-card quick-search-card">
+<div class="card-heading">
+<h3>Localização rápida de aluno</h3>
+<span>Busca por nome ou matrícula em todas as turmas autorizadas</span>
+</div>
+<div class="filter-card search-filter-card">
+<label>Setor da busca
+                <select id="quick-sector-filter">
+<option value="">Todos os setores autorizados</option>
+</select>
+</label>
+<label>Nome ou matrícula
+                <input id="quick-student-search" placeholder="Digite ao menos 3 caracteres" type="search"/>
+</label>
+<div class="filter-actions">
+<button class="button primary" id="quick-student-button" type="button">Localizar</button>
+<button class="button secondary" id="quick-student-clear" type="button">Limpar</button>
+</div>
+</div>
+<p class="card-help-note">Selecione setor, turma e aluno para emitir diretamente, ou use a busca rápida por nome/matrícula quando não souber a turma.</p>
+<div class="table-wrap quick-results">
+<table>
+<thead><tr><th>Aluno</th><th>Matrícula</th><th>Turma</th><th>Setor</th><th>Status</th><th>Ação</th></tr></thead>
+<tbody id="quick-students-table-body">
+<tr><td class="empty-cell" colspan="6">Digite nome ou matrícula e clique em Localizar.</td></tr>
+</tbody>
+</table>
+</div>
+</article>
+<div class="filter-card student-filter-card">
+<label>Setor
+              <select id="students-sector-filter">
+<option value="">Todos os setores autorizados</option>
+</select>
+</label>
+<label>Turma
+              <select id="students-class-filter">
+<option value="">Selecione uma turma</option>
+</select>
+</label>
+<label>Aluno da turma
+              <select disabled="disabled" id="students-student-list">
+<option value="">Selecione uma turma para carregar alunos</option>
+</select>
+</label>
+<label>Nome ou matrícula
+              <input id="student-search" placeholder="Use apenas se não selecionar turma/aluno" type="search"/>
+</label>
+<div class="filter-actions">
+<button class="button primary" id="students-filter-button" type="button">Buscar / carregar</button>
+<button class="button secondary" id="students-filter-clear" type="button">Limpar</button>
+</div>
+</div>
+<article class="panel-card">
+<div class="card-heading">
+<h3 id="students-table-title">Alunos</h3>
+<span id="students-count-label"></span>
+</div>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Aluno</th><th>Matrícula</th><th>Status</th><th>P</th><th>F</th><th>FJ</th><th>A</th><th>AJ</th><th>AD</th><th>JE</th><th>S</th><th>Total</th><th>Situação</th></tr></thead>
+<tbody id="students-table-body"></tbody>
+</table>
+</div>
+</article>
+</section>
+
+<section class="view-section hidden" id="new-service-section">
+<div class="student-module-tabs" aria-label="Navegação do aluno">
+  <button data-open-view="students" type="button">Ficha / busca</button>
+  <button class="active" data-open-view="new-service" type="button">Registrar atendimento</button>
+  <button data-open-view="history" type="button">Histórico</button>
+  <button data-open-view="absence-alert" type="button">APOIA</button>
+  <button data-open-view="attendance-card" type="button">Cartão</button>
+</div>
+<div class="section-heading">
+  <div>
+    <h2>Registrar novo atendimento</h2>
+    <p>Localize o estudante, consulte o histórico já registrado e salve um novo atendimento diretamente no Supabase.</p>
+  </div>
+</div>
+
+<article class="panel-card service-search-card">
+  <div class="card-heading">
+    <div>
+      <h3>Selecionar estudante</h3>
+      <span>Busque por setor/turma/aluno ou diretamente por nome ou matrícula.</span>
+    </div>
+  </div>
+  <div class="filter-card service-filter-card">
+    <label>Setor
+      <select id="service-sector-filter"><option value="">Todos os setores autorizados</option></select>
+    </label>
+    <label>Turma
+      <select id="service-class-filter"><option value="">Selecione uma turma</option></select>
+    </label>
+    <label>Aluno da turma
+      <select id="service-student-list" disabled><option value="">Selecione uma turma para carregar alunos</option></select>
+    </label>
+    <label>Nome ou matrícula
+      <input id="service-search" type="search" placeholder="Use se não selecionar o aluno acima">
+    </label>
+    <div class="filter-actions">
+      <button class="button primary" id="service-load-student" type="button">Carregar aluno</button>
+      <button class="button secondary" id="service-clear" type="button">Limpar</button>
+    </div>
+  </div>
+  <div id="service-search-results" class="service-search-results hidden"></div>
+</article>
+
+<article class="panel-card service-student-card hidden" id="service-student-card">
+  <div class="card-heading">
+    <div>
+      <h3 id="service-student-name">Aluno selecionado</h3>
+      <span id="service-student-meta"></span>
+    </div>
+  </div>
+  <div id="service-student-contact" class="service-student-contact"></div>
+</article>
+
+<div class="service-workspace-grid">
+  <article class="panel-card service-form-card hidden" id="service-form-card">
+    <div class="card-heading">
+      <div>
+        <h3>Novo atendimento</h3>
+        <span>O registro será incorporado ao histórico do estudante.</span>
+      </div>
+    </div>
+    <div class="service-entry-grid">
+      <label><span>Data do atendimento</span><input id="service-date" type="date"></label>
+      <label><span>Servidor responsável</span><input id="service-responsavel" type="text" maxlength="120" placeholder="Nome do servidor"></label>
+      <label class="wide"><span>Observação do atendimento</span><textarea id="service-observacao" maxlength="600" placeholder="Registre o atendimento realizado. Limite de 600 caracteres."></textarea><small id="service-observacao-counter">0/600 caracteres</small></label>
+      <label class="wide"><span>Justificativa / motivo informado</span><textarea id="service-justificativa" maxlength="600" placeholder="Opcional"></textarea></label>
+      <label class="wide"><span>Encaminhamento</span><textarea id="service-encaminhamento" maxlength="600" placeholder="Opcional"></textarea></label>
+      <label class="wide"><span>Providências adotadas</span><textarea id="service-providencias" maxlength="600" placeholder="Opcional"></textarea></label>
+      <label><span>Situação</span><select id="service-situacao"><option value="EM_ACOMPANHAMENTO">Em acompanhamento</option><option value="ENCAMINHADO">Encaminhado</option><option value="CONCLUIDO">Concluído</option><option value="OUTRA">Outra</option></select></label>
+      <label><span>Chave de autorização</span><input id="service-token" type="password" autocomplete="off" placeholder="Chave de registro"></label>
+    </div>
+    <div class="service-actions">
+      <span id="service-status">Preencha o atendimento e clique em Salvar.</span>
+      <button class="button primary" id="service-save" type="button">Salvar atendimento</button>
+    </div>
+  </article>
+
+  <article class="panel-card service-history-card hidden" id="service-history-card">
+    <div class="card-heading">
+      <div>
+        <h3>Histórico de atendimentos e observações</h3>
+        <span id="service-history-count">Nenhum aluno selecionado.</span>
+      </div>
+      <button class="button secondary compact-button" id="service-refresh-history" type="button">Atualizar histórico</button>
+    </div>
+    <div id="service-history-body" class="service-history-body"></div>
+  </article>
+</div>
+</section>
+
+<section class="view-section hidden" id="history-section">
+<div class="student-module-tabs" aria-label="Navegação do aluno">
+  <button data-open-view="students" type="button">Ficha / busca</button>
+  <button data-open-view="new-service" type="button">Registrar atendimento</button>
+  <button class="active" data-open-view="history" type="button">Histórico</button>
+  <button data-open-view="absence-alert" type="button">APOIA</button>
+  <button data-open-view="attendance-card" type="button">Cartão</button>
+</div>
+<div class="section-heading">
+<div>
+<h2>Histórico de observações</h2>
+<p>Acompanhe, por estudante, a sequência mensal de justificativas e observações registradas nos atendimentos APOIA.</p>
+</div>
+<button class="button secondary" id="history-export" type="button">Baixar planilha</button>
+</div>
+
+<div class="filter-card history-filter-card">
+<label>Setor
+<select id="history-sector-filter">
+<option value="">Todos os setores autorizados</option>
+</select>
+</label>
+<label>Turma
+<select id="history-class-filter">
+<option value="">Todas as turmas autorizadas</option>
+</select>
+</label>
+<label>Aluno da turma
+<select disabled="disabled" id="history-student-list">
+<option value="">Selecione uma turma para carregar alunos</option>
+</select>
+</label>
+<label>Nome ou matrícula
+<input id="history-search" placeholder="Busque o estudante" type="search"/>
+</label>
+<label>Mês inicial
+<input id="history-month-start" type="month"/>
+</label>
+<label>Mês final
+<input id="history-month-end" type="month"/>
+</label>
+<div class="filter-actions">
+<button class="button primary" id="history-generate" type="button">Gerar histórico</button>
+<button class="button secondary" id="history-clear" type="button">Limpar</button>
+</div>
+</div>
+
+<div class="history-summary-grid">
+<article class="history-summary-card"><span>Registros encontrados</span><strong id="history-total-registros">0</strong></article>
+<article class="history-summary-card"><span>Alunos no resultado</span><strong id="history-total-alunos">0</strong></article>
+<article class="history-summary-card"><span>Primeira competência</span><strong id="history-primeira-competencia">—</strong></article>
+<article class="history-summary-card"><span>Última competência</span><strong id="history-ultima-competencia">—</strong></article>
+</div>
+
+<article class="panel-card history-main-panel">
+<div class="card-heading history-panel-heading">
+<div>
+<h3>Painel histórico das observações</h3>
+<span id="history-count-label">Selecione um estudante ou faça uma busca.</span>
+</div>
+</div>
+<div id="history-student-panel" class="history-student-panel">
+<div class="empty-cell history-empty-state">Selecione uma turma e um estudante, ou busque pelo nome/matrícula, para visualizar o histórico mês a mês.</div>
+</div>
+</article>
+
+<article class="panel-card history-detail-card hidden" id="history-detail-card">
+<div class="card-heading">
+<h3>Detalhes do atendimento</h3>
+<button class="button secondary compact-button" id="history-detail-close" type="button">Fechar</button>
+</div>
+<div id="history-detail-body"></div>
+</article>
+</section>
+<section class="view-section hidden" id="absence-alert-section">
+<div class="student-module-tabs" aria-label="Navegação APOIA">
+  <button data-open-view="students" type="button">Ficha / busca</button>
+  <button data-open-view="new-service" type="button">Registrar atendimento</button>
+  <button data-open-view="history" type="button">Histórico</button>
+  <button class="active" data-open-view="absence-alert" type="button">Painel APOIA</button>
+  <button data-open-view="attendance-card" type="button">Cartão</button>
+</div>
+<div class="section-heading">
+<div>
+<h2>Programa APOIA</h2>
+<p>Acompanhamento institucional de estudantes ativos com recorrência de faltas, para atuação pedagógica e encaminhamentos à rede de proteção.</p>
+</div>
+<div class="button-row">
+<button class="button primary" id="absence-alert-generate" type="button">Gerar relatório</button>
+<button class="button secondary" id="absence-council-report-all" type="button">Emitir relatório ao Conselho Tutelar</button>
+<button class="button secondary" id="absence-alert-export" type="button">Baixar planilha</button>
+</div>
+</div>
+<article class="panel-card absence-command-card">
+<div class="filter-card absence-filter-card">
+<label>Data de referência
+                <input id="absence-date" type="date"/>
+</label>
+<label>Tipo de relatório
+                <select id="absence-report-type">
+<option value="geral">Geral</option>
+<option value="grupo">Por grupo/setor</option>
+<option value="turma">Por turma</option>
+<option value="aluno">Por aluno</option>
+</select>
+</label>
+<label>Grupo/Setor
+                <select id="absence-sector-filter">
+<option value="">Todos os setores autorizados</option>
+</select>
+</label>
+<label>Turma
+                <select id="absence-class-filter">
+<option value="">Todas as turmas autorizadas</option>
+</select>
+</label>
+<label>Aluno
+                <select disabled="" id="absence-student-list">
+<option value="">Selecione uma turma</option>
+</select>
+</label>
+<label>Período em dias
+                <input id="absence-days-window" min="1" max="180" step="1" type="number" value="30"/>
+</label>
+<label>Faltas intercaladas
+                <input id="absence-alt-threshold" min="1" max="100" step="1" type="number" value="7"/>
+</label>
+<label>Faltas consecutivas
+                <input id="absence-consecutive-threshold" min="1" max="50" step="1" type="number" value="5"/>
+</label>
+<div class="filter-actions">
+<button class="button primary" id="absence-alert-generate-secondary" type="button">Gerar</button>
+<button class="button secondary" id="absence-alert-clear" type="button">Limpar</button>
+</div>
+</div>
+</article>
+<article class="panel-card absence-alert-card">
+<div class="card-heading">
+<div>
+<h3>Relatório de acompanhamento APOIA</h3>
+<span>Identifica estudantes ativos que exigem acompanhamento por recorrência de faltas nos últimos 30 dias ou por sequência de 05 faltas.</span>
+</div>
+</div>
+<div class="absence-rule-grid">
+<article class="mini-rule-card">
+<span>Regra 1</span>
+<strong id="absence-rule-alt-title">Mais de 07 faltas intercaladas</strong>
+<p id="absence-rule-alt-text">Conta código F no intervalo de 30 dias anteriores à data de referência.</p>
+</article>
+<article class="mini-rule-card">
+<span>Regra 2</span>
+<strong id="absence-rule-consecutive-title">05 faltas consecutivas</strong>
+<p id="absence-rule-consecutive-text">Verifica sequência de 05 códigos F nas datas válidas da turma.</p>
+</article>
+<article class="mini-rule-card">
+<span>Período</span>
+<strong id="absence-alert-period">Últimos 30 dias</strong>
+<p>Usa a data de referência selecionada neste menu. Estudantes transferidos não são considerados.</p>
+</article>
+</div>
+<div class="kpi-grid absence-kpi-grid">
+<article class="kpi-card emphasis"><span>Alunos em alerta</span><strong id="absence-alert-total">0</strong></article>
+<article class="kpi-card"><span>Mais de 07 faltas</span><strong id="absence-alert-intercaladas">0</strong></article>
+<article class="kpi-card"><span>03 consecutivas</span><strong id="absence-alert-consecutivas">0</strong></article>
+<article class="kpi-card"><span>Maior nº de faltas</span><strong id="absence-alert-max">0</strong></article>
+</div>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Aluno</th>
+<th>Matrícula</th>
+<th>Setor</th>
+<th>Turma</th>
+<th>Faltas em 30 dias</th>
+<th>Maior sequência</th>
+<th>Critério acionado</th>
+<th>Datas das faltas</th>
+<th>Relatório</th>
+</tr>
+</thead>
+<tbody id="absence-alert-body">
+<tr><td class="empty-cell" colspan="8">Selecione os filtros e clique em Gerar relatório.</td></tr>
+</tbody>
+</table>
+</div>
+</article>
+</section>
+<section class="view-section hidden" id="sectors-section">
+<div class="section-heading">
+<div>
+<h2>Turmas por setor</h2>
+<p>Visualização das turmas autorizadas agrupadas por setor/coordenação, com totais consolidados por classificação oficial.</p>
+</div>
+<div class="button-row">
+<button class="button secondary" id="refresh-sectors" type="button">Atualizar</button>
+</div>
+</div>
+<div class="filter-card sector-filter-card">
+<label>Setor
+              <select id="sector-view-filter">
+<option value="">Todos os setores autorizados</option>
+</select>
+</label>
+</div>
+<div class="kpi-grid">
+<article class="kpi-card"><span>Setores</span><strong id="sector-kpi-sectors">0</strong></article>
+<article class="kpi-card"><span>Turmas</span><strong id="sector-kpi-classes">0</strong></article>
+<article class="kpi-card"><span>Alunos ativos</span><strong id="sector-kpi-students">0</strong></article>
+<article class="kpi-card emphasis"><span>Total classificado</span><strong id="sector-kpi-total">0</strong></article>
+</div>
+<article class="panel-card">
+<div class="card-heading">
+<h3>Relação de turmas por setor</h3>
+<span id="sector-count-label"></span>
+</div>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Setor</th><th>Turma</th><th>Alunos</th><th>P</th><th>F</th><th>FJ</th><th>A</th><th>AJ</th><th>AD</th><th>JE</th><th>S</th><th>Total</th><th>Atualização</th></tr></thead>
+<tbody id="sector-table-body"></tbody>
+</table>
+</div>
+</article>
+</section>
+<section class="view-section hidden" id="attendance-card-section">
+<div class="section-heading no-print">
+<div>
+<h2>Cartão de frequência</h2>
+<p>Emissão individual com relação de alunos por turma, grade diária, totais e versão compacta para emissão do cartão.</p>
+</div>
+<div class="button-row">
+<button class="button secondary" id="attendance-card-print" type="button">Gerar / emitir cartão</button>
+<button class="button secondary" id="attendance-card-clear" type="button">Limpar</button>
+</div>
+</div>
+<article class="panel-card no-print">
+<div class="card-heading">
+<h3>Localizar aluno para emissão do cartão</h3>
+<span>Pesquise por nome ou matrícula</span>
+</div>
+<div class="filter-card attendance-card-filter">
+<label>Setor
+                <select id="card-sector-filter">
+<option value="">Todos os setores autorizados</option>
+</select>
+</label>
+<label>Turma
+                <select id="card-class-filter">
+<option value="">Todas as turmas autorizadas</option>
+</select>
+</label>
+<label>Relação de alunos da turma
+                <select disabled="" id="card-student-list">
+<option value="">Selecione uma turma para carregar a relação</option>
+</select>
+</label>
+<label>Nome ou matrícula
+                <input id="card-student-search" placeholder="Digite nome ou matrícula" type="search"/>
+</label>
+<div class="filter-actions">
+<button class="button secondary" disabled="" id="card-generate-selected" type="button">Gerar selecionado</button>
+<button class="button primary" id="card-search-button" type="button">Localizar</button>
+</div>
+</div>
+<p class="card-help-note">Selecione setor, turma e aluno para emitir diretamente, ou use a busca rápida por nome/matrícula quando não souber a turma.</p>
+<div class="table-wrap quick-results">
+<table>
+<thead><tr><th>Aluno</th><th>Matrícula</th><th>Turma</th><th>Setor</th><th>Status</th><th>Ação</th></tr></thead>
+<tbody id="card-search-results-body">
+<tr><td class="empty-cell" colspan="6">Digite nome ou matrícula e clique em Localizar.</td></tr>
+</tbody>
+</table>
+</div>
+</article>
+<article class="attendance-card-report panel-card hidden" id="attendance-card-report">
+<div class="attendance-report-toolbar no-print">
+<span id="attendance-card-status">Cartão carregado.</span>
+<button class="button primary" id="attendance-card-print-secondary" type="button">Emitir cartão de frequência</button>
+</div>
+<div class="attendance-card-sheet modern-attendance-card">
+<header class="attendance-modern-header">
+<div class="institution-block">
+<span>ESTADO DE SANTA CATARINA</span>
+<span>SECRETARIA DE ESTADO DA EDUCAÇÃO</span>
+<strong>INSTITUTO ESTADUAL DE EDUCAÇÃO</strong>
+</div>
+<div class="report-title-block">
+<span class="report-eyebrow">Relatório individual</span>
+<h3>Cartão de frequência</h3>
+<p id="card-period-label">Período selecionado</p>
+</div>
+</header>
+<section class="attendance-identity-grid">
+<div class="identity-item wide"><span>Aluno</span><strong id="card-student-name">—</strong></div>
+<div class="identity-item"><span>Matrícula</span><strong id="card-matricula">—</strong></div>
+<div class="identity-item"><span>Data de nascimento</span><strong id="card-nascimento">—</strong></div>
+<div class="identity-item"><span>Idade</span><strong id="card-idade">—</strong></div>
+<div class="identity-item"><span>Turma</span><strong id="card-turma">—</strong></div>
+<div class="identity-item"><span>Setor</span><strong id="card-setor">—</strong></div>
+<div class="identity-item"><span>Ano letivo</span><strong id="card-ano">—</strong></div>
+<div class="identity-item"><span>Datas exibidas</span><strong id="card-total-dates">0</strong></div>
+</section>
+<section class="attendance-contact-grid" id="card-contact-section">
+<div class="identity-item full"><span>Contatos e responsáveis</span><strong>Gere o cartão para carregar os contatos do cadastro.</strong></div>
+</section>
+<section class="attendance-card-kpis">
+<article class="mini-kpi"><span>Dias no cartão</span><strong id="card-kpi-dias">0</strong></article>
+<article class="mini-kpi success"><span>Presenças</span><strong id="card-kpi-presencas">0</strong></article>
+<article class="mini-kpi danger"><span>Faltas</span><strong id="card-kpi-faltas">0</strong></article>
+<article class="mini-kpi warning"><span>Atrasos</span><strong id="card-kpi-atrasos">0</strong></article>
+<article class="mini-kpi info"><span>Justificativas</span><strong id="card-kpi-justificadas">0</strong></article>
+<article class="mini-kpi neutral"><span>Sem lançamento</span><strong id="card-kpi-sem-lancamento">0</strong></article>
+</section>
+<section class="attendance-table-summary">
+<div class="summary-cell"><span>P</span><strong id="card-total-p">0</strong></div>
+<div class="summary-cell"><span>F</span><strong id="card-total-f">0</strong></div>
+<div class="summary-cell"><span>FJ</span><strong id="card-total-fj">0</strong></div>
+<div class="summary-cell"><span>A</span><strong id="card-total-a">0</strong></div>
+<div class="summary-cell"><span>AJ</span><strong id="card-total-aj">0</strong></div>
+<div class="summary-cell"><span>AD</span><strong id="card-total-ad">0</strong></div>
+<div class="summary-cell"><span>JE</span><strong id="card-total-je">0</strong></div>
+<div class="summary-cell"><span>S</span><strong id="card-total-s">0</strong></div>
+<div class="summary-cell"><span>SC</span><strong id="card-total-sc">0</strong></div>
+</section>
+<div class="attendance-months-modern no-print-compact" id="attendance-card-months">
+<div class="empty-cell">Nenhum cartão carregado.</div>
+</div>
+<div class="attendance-card-footnote">
+<strong>Legenda:</strong>
+                P = Presente; F = Falta; FJ = Falta justificada; A = Atraso; AJ = Atraso justificado; AD = Atendimento domiciliar; JE = Justificado pela escola; S = Suspensão; SC = sem computar/sem classificação. O traço “—” indica data existente no calendário da turma, mas sem lançamento para o aluno.
+              </div>
+</div>
+</article>
+</section>
+<section class="view-section hidden migration-diagnostic-view" id="migration-diagnostic-section">
+<div class="section-heading">
+  <div>
+    <span class="report-eyebrow">Administração</span>
+    <h2>Diagnóstico de migração por turma</h2>
+    <p>Compara em tempo real a planilha Google, o PostgreSQL e o histórico das tentativas de importação para identificar por que uma turma não migrou.</p>
+  </div>
+  <div class="button-row">
+    <button class="button secondary" data-open-view="admin" type="button">Voltar à administração</button>
+  </div>
+</div>
+
+<article class="panel-card migration-diagnostic-filter-card">
+  <div class="card-heading">
+    <div>
+      <h3>Selecionar turma</h3>
+      <span>O diagnóstico é somente leitura. Nenhum aluno, vínculo ou frequência é alterado.</span>
+    </div>
+  </div>
+  <div class="migration-diagnostic-controls">
+    <label>
+      <span>Turma</span>
+      <select id="migration-diagnostic-class">
+        <option value="">Selecione uma turma</option>
+      </select>
+    </label>
+    <label>
+      <span>Chave administrativa</span>
+      <input id="migration-diagnostic-token" type="password" autocomplete="off" placeholder="IEE_IMPORT_TOKEN"/>
+      <small>A chave fica apenas nesta página enquanto ela estiver aberta e não é gravada pelo portal.</small>
+    </label>
+    <button class="button primary migration-diagnostic-run" id="migration-diagnostic-run" type="button">Executar diagnóstico completo</button>
+<button class="button secondary" id="migration-diagnostic-update" type="button">Atualizar esta turma</button>
+  </div>
+  <div class="migration-period-controls">
+    <label>
+      <span>Período do diagnóstico</span>
+      <select id="migration-diagnostic-period-mode">
+        <option value="automatico">Automático — desde a primeira inconsistência</option>
+        <option value="personalizado">Personalizado — escolher data inicial e final</option>
+      </select>
+    </label>
+    <label>
+      <span>Data inicial</span>
+      <input id="migration-diagnostic-date-start" type="date" disabled/>
+      <small id="migration-diagnostic-date-start-help">No modo automático, o sistema localizará a primeira data não migrada ou a primeira divergência.</small>
+    </label>
+    <label>
+      <span>Data final</span>
+      <input id="migration-diagnostic-date-end" type="date"/>
+      <small>Por padrão, será usada a data de hoje.</small>
+    </label>
+  </div>
+  <div class="migration-diagnostic-message" id="migration-diagnostic-message">Selecione uma turma para iniciar.</div>
+</article>
+
+<section class="migration-diagnostic-results hidden" id="migration-diagnostic-results">
+  <div class="migration-diagnostic-status-card" id="migration-diagnostic-status-card">
+    <div>
+      <span class="migration-diagnostic-status-label">Situação da turma</span>
+      <h3 id="migration-diagnostic-title">—</h3>
+      <p id="migration-diagnostic-summary">—</p>
+    </div>
+    <div class="migration-diagnostic-status-badge" id="migration-diagnostic-status-badge">—</div>
+  </div>
+
+  <article class="panel-card migration-period-summary-card">
+    <div class="card-heading">
+      <div>
+        <h3>Período efetivamente analisado</h3>
+        <span>O modo automático inicia na primeira inconsistência encontrada. No modo personalizado, respeita as datas informadas.</span>
+      </div>
+    </div>
+    <dl class="migration-period-facts">
+      <div><dt>Início analisado</dt><dd id="migration-period-start">—</dd></div>
+      <div><dt>Fim analisado</dt><dd id="migration-period-end">—</dd></div>
+      <div><dt>Critério do início</dt><dd id="migration-period-criterion">—</dd></div>
+      <div><dt>Primeira data não migrada</dt><dd id="migration-first-not-migrated">—</dd></div>
+      <div><dt>Primeira divergência de dados</dt><dd id="migration-first-divergence">—</dd></div>
+      <div><dt>Primeira falha registrada</dt><dd id="migration-first-failure">—</dd></div>
+    </dl>
+  </article>
+
+  <div class="kpi-grid migration-diagnostic-kpis">
+    <article class="kpi-card"><span>Última data na planilha</span><strong id="migration-google-last-date">—</strong></article>
+    <article class="kpi-card"><span>Última migração no banco</span><strong id="migration-db-last-date">—</strong></article>
+    <article class="kpi-card"><span>Defasagem</span><strong id="migration-gap-days">—</strong></article>
+    <article class="kpi-card"><span>Frequências pendentes</span><strong id="migration-pending-frequency">—</strong></article>
+    <article class="kpi-card"><span>Dias letivos pendentes</span><strong id="migration-pending-days">—</strong></article>
+    <article class="kpi-card"><span>Vínculos a criar</span><strong id="migration-pending-links">—</strong></article>
+    <article class="kpi-card"><span>Última execução</span><strong id="migration-last-run">—</strong></article>
+    <article class="kpi-card"><span>Tempo do diagnóstico</span><strong id="migration-diagnostic-time">—</strong></article>
+  </div>
+
+  <article class="panel-card migration-cause-card">
+    <div class="card-heading"><div><h3>Causa identificada</h3><span id="migration-confidence">—</span></div></div>
+    <div class="migration-cause-content">
+      <p id="migration-cause-summary">—</p>
+      <div><strong>Orientação:</strong> <span id="migration-cause-guidance">—</span></div>
+      <div class="migration-technical-error hidden" id="migration-technical-error"></div>
+    </div>
+  </article>
+
+  <div class="migration-two-columns">
+    <article class="panel-card">
+      <div class="card-heading"><div><h3>Origem da turma</h3><span>Fonte efetivamente utilizada no diagnóstico.</span></div></div>
+      <dl class="migration-facts" id="migration-source-facts"></dl>
+    </article>
+    <article class="panel-card">
+      <div class="card-heading"><div><h3>Resumo de consistência</h3><span>Comparação entre planilha e PostgreSQL.</span></div></div>
+      <dl class="migration-facts" id="migration-consistency-facts"></dl>
+    </article>
+  </div>
+
+  <article class="panel-card">
+    <div class="card-heading"><div><h3>Erros encontrados na planilha</h3><span>Códigos inválidos, datas duplicadas, quebra cronológica ou falha de estrutura.</span></div></div>
+    <div class="table-wrap">
+      <table class="migration-diagnostic-table">
+        <thead><tr><th>Tipo</th><th>Data</th><th>Aluno / matrícula</th><th>Linha / coluna</th><th>Valor / detalhe</th></tr></thead>
+        <tbody id="migration-sheet-errors-body"><tr><td colspan="5" class="empty-cell">Nenhum diagnóstico executado.</td></tr></tbody>
+      </table>
+    </div>
+  </article>
+
+  <article class="panel-card">
+    <div class="card-heading"><div><h3>Conflitos de vínculo</h3><span>Alunos ativos na planilha que já possuem vínculo ATIVO em outra turma.</span></div></div>
+    <div class="table-wrap">
+      <table class="migration-diagnostic-table">
+        <thead><tr><th>Aluno</th><th>Matrícula</th><th>Turma da planilha</th><th>Turma ativa no banco</th><th>Coordenação existente</th><th>Motivo</th></tr></thead>
+        <tbody id="migration-link-conflicts-body"><tr><td colspan="6" class="empty-cell">Nenhum diagnóstico executado.</td></tr></tbody>
+      </table>
+    </div>
+  </article>
+
+  <article class="panel-card">
+    <div class="card-heading"><div><h3>Divergências Google × PostgreSQL</h3><span>Auditoria célula a célula somente dentro do período analisado, limitada às primeiras ocorrências relevantes.</span></div></div>
+    <div class="table-wrap">
+      <table class="migration-diagnostic-table">
+        <thead><tr><th>Tipo</th><th>Data</th><th>Aluno / matrícula</th><th>Google</th><th>PostgreSQL</th></tr></thead>
+        <tbody id="migration-audit-body"><tr><td colspan="5" class="empty-cell">Nenhum diagnóstico executado.</td></tr></tbody>
+      </table>
+    </div>
+  </article>
+
+  <article class="panel-card">
+    <div class="card-heading"><div><h3>Histórico das tentativas de importação</h3><span>Permite identificar erro, interrupção e provável timeout por turma.</span></div></div>
+    <div class="table-wrap">
+      <table class="migration-diagnostic-table">
+        <thead><tr><th>Início</th><th>Fim</th><th>Origem</th><th>Status</th><th>Duração</th><th>Categoria</th><th>Mensagem</th></tr></thead>
+        <tbody id="migration-history-body"><tr><td colspan="7" class="empty-cell">O histórico individual começará a ser registrado após a instalação do Pacote 45.</td></tr></tbody>
+      </table>
+    </div>
+  </article>
+</section>
+</section>
+<section class="view-section hidden migration-audit-general-view" id="migration-audit-general-section">
+<div class="section-heading">
+  <div>
+    <span class="report-eyebrow">Administração</span>
+    <h2>Auditoria geral das turmas</h2>
+    <p>Compara, para uma data selecionada, a fonte Google, o PostgreSQL, a camada do relatório e a situação do cache de todas as turmas configuradas.</p>
+  </div>
+  <div class="button-row">
+    <button class="button secondary" data-open-view="admin" type="button">Voltar à administração</button>
+  </div>
+</div>
+
+<article class="panel-card migration-general-filter-card">
+  <div class="card-heading"><div><h3>Executar auditoria geral</h3><span>Operação somente leitura. Nenhum dado de frequência é alterado.</span></div></div>
+  <div class="migration-general-controls">
+    <label><span>Data da auditoria</span><input id="migration-general-date" type="date"/></label>
+    <label><span>Chave administrativa</span><input id="migration-general-token" type="password" autocomplete="off" placeholder="IEE_IMPORT_TOKEN"/><small>A chave não é gravada pelo portal.</small></label>
+    <button class="button primary" id="migration-general-run" type="button">Auditar todas as turmas</button>
+  </div>
+  <div class="migration-general-message" id="migration-general-message">Selecione a data e execute a auditoria.</div>
+</article>
+
+<section class="migration-general-results hidden" id="migration-general-results">
+  <div class="kpi-grid migration-general-kpis">
+    <article class="kpi-card"><span>Turmas auditadas</span><strong id="migration-general-total">0</strong></article>
+    <article class="kpi-card"><span>OK</span><strong id="migration-general-ok">0</strong></article>
+    <article class="kpi-card"><span>Atenção</span><strong id="migration-general-warning">0</strong></article>
+    <article class="kpi-card emphasis"><span>Erros</span><strong id="migration-general-error">0</strong></article>
+    <article class="kpi-card"><span>Cache</span><strong id="migration-general-cache">—</strong></article>
+    <article class="kpi-card"><span>Tempo</span><strong id="migration-general-time">—</strong></article>
+  </div>
+
+  <article class="panel-card">
+    <div class="card-heading">
+      <div><h3>Resultado por turma</h3><span>Presença = qualquer código lançado diferente de F. Sem lançamento fica fora do percentual.</span></div>
+      <label class="migration-general-filter"><span>Filtro</span><select id="migration-general-filter"><option value="TODOS">Todas</option><option value="ERRO">Somente erros</option><option value="ATENCAO">Somente atenção</option><option value="ERRO_MIGRACAO">Erro de migração</option><option value="ERRO_VINCULO">Erro de vínculo</option><option value="FONTE_FISICA_DIVERGENTE">Fonte física divergente</option><option value="ERRO_RELATORIO">Erro de relatório</option><option value="CACHE_PENDENTE">Cache pendente</option><option value="DATA_NAO_ENCONTRADA_PLANILHA">Data não encontrada</option></select></label>
+    </div>
+    <div class="table-wrap migration-general-table-wrap">
+      <table class="migration-general-table">
+        <thead><tr><th>Turma</th><th>Fonte física</th><th>Coordenação lógica</th><th>Google</th><th>PostgreSQL</th><th>Relatório</th><th>Situação</th><th>Detalhe</th><th>Ação</th></tr></thead>
+        <tbody id="migration-general-body"><tr><td colspan="9" class="empty-cell">Nenhuma auditoria executada.</td></tr></tbody>
+      </table>
+    </div>
+  </article>
+  <article class="panel-card" id="migration-general-pendencias-card">
+    <div class="card-heading">
+      <div><h3>Pend&ecirc;ncias da Planilha</h3><span>C&oacute;digos inv&aacute;lidos identificados na origem. Eles n&atilde;o bloqueiam a atualiza&ccedil;&atilde;o da turma e devem ser corrigidos na planilha.</span></div>
+      <strong id="migration-general-pending-count">0</strong>
+    </div>
+    <div class="table-wrap migration-general-table-wrap">
+      <table class="migration-general-table">
+        <thead><tr><th>Fonte</th><th>Turma</th><th>Aluno</th><th>Matr&iacute;cula</th><th>Data</th><th>Linha</th><th>Coluna</th><th>Valor encontrado</th><th>Situa&ccedil;&atilde;o</th></tr></thead>
+        <tbody id="migration-general-pending-body"><tr><td colspan="9" class="empty-cell">Nenhuma pend&ecirc;ncia identificada.</td></tr></tbody>
+      </table>
+    </div>
+  </article>
+</section>
+</section>
+<section class="view-section hidden" id="admin-details-section">
+<div class="section-heading">
+<div>
+<h2>Detalhes administrativos</h2>
+<p>Identificação objetiva de permissões, abas com erro, diferenças estruturais e atualizações de lançamentos.</p>
+</div>
+<div class="button-row">
+<button class="button secondary" id="refresh-admin-details" type="button">Atualizar detalhes</button>
+<button class="button secondary admin-back-button" data-open-view="admin" type="button">Voltar ao resumo</button>
+</div>
+</div>
+<div class="admin-detail-tabs">
+<a href="#admin-detail-alerts">Avisos</a>
+<a href="#admin-detail-permissions">Permissões</a>
+<a href="#admin-detail-sources">Fontes e abas</a>
+<a href="#admin-detail-structural">Diferenças estruturais</a>
+<a href="#admin-detail-codes">Atualizações de lançamentos</a>
+</div>
+<article class="panel-card" id="admin-detail-alerts">
+<div class="card-heading">
+<h3>Resumo dos avisos</h3>
+<span>Mostra o aviso, a origem e a providência recomendada.</span>
+</div>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Tipo</th>
+<th>Origem</th>
+<th>Detalhe</th>
+<th>Ação recomendada</th>
+</tr>
+</thead>
+<tbody id="admin-details-alerts-body"></tbody>
+</table>
+</div>
+</article>
+<article class="panel-card" id="admin-detail-permissions">
+<div class="card-heading">
+<h3>Permissões de leitura administrativa</h3>
+<span>Indica coleções bloqueadas pelas regras do Firestore.</span>
+</div>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Coleção / operação</th>
+<th>Erro informado</th>
+<th>Correção sugerida</th>
+</tr>
+</thead>
+<tbody id="admin-details-permissions-body"></tbody>
+</table>
+</div>
+</article>
+<article class="panel-card" id="admin-detail-sources">
+<div class="card-heading">
+<h3>Fontes, planilhas e abas com pendência</h3>
+<span>Mostra exatamente qual coordenação, planilha ou aba precisa de correção.</span>
+</div>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Coordenação / fonte</th>
+<th>Planilha</th>
+<th>Aba / turma</th>
+<th>Tipo</th>
+<th>Detalhe técnico</th>
+<th>Ação</th>
+</tr>
+</thead>
+<tbody id="admin-details-sources-body"></tbody>
+</table>
+</div>
+</article>
+<article class="panel-card" id="admin-detail-structural">
+<div class="card-heading">
+<h3>Diferenças estruturais</h3>
+<span>Diferenças de alunos, ativos, registros ou datas entre teste e oficial.</span>
+</div>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Turma</th>
+<th>Fonte</th>
+<th>Alunos</th>
+<th>Ativos</th>
+<th>Registros</th>
+<th>Datas</th>
+<th>Ação</th>
+</tr>
+</thead>
+<tbody id="admin-details-structural-body"></tbody>
+</table>
+</div>
+</article>
+<article class="panel-card" id="admin-detail-codes">
+<div class="card-heading">
+<h3>Atualizações de lançamentos</h3>
+<span>Diferenças de códigos P, F, FJ, A, AJ, AD, JE, S e SC. Em geral, são atualizações legítimas da planilha de origem.</span>
+</div>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Turma</th>
+<th>Fonte</th>
+<th>Códigos alterados</th>
+<th>Interpretação</th>
+</tr>
+</thead>
+<tbody id="admin-details-codes-body"></tbody>
+</table>
+</div>
+</article>
+</section>
+<section class="view-section hidden" id="admin-section">
+<div class="section-heading">
+<div>
+<h2>Administração do sistema</h2>
+<p>Gestão da sincronização Supabase, histórico de atualizações, cache e rotina automática.</p>
+</div>
+<button class="button secondary" id="refresh-admin" type="button">Atualizar painel</button>
+</div>
+<article class="panel-card admin-monitor-card">
+<div class="card-heading">
+<div>
+<h3>Monitoramento dos dados</h3>
+<span id="admin-data-updated">Aguardando leitura dos dados administrativos.</span>
+</div>
+</div>
+<div class="kpi-grid admin-monitor-grid">
+<article class="kpi-card"><span>Situação</span><strong id="admin-data-status">—</strong></article>
+<article class="kpi-card"><span>Última atualização</span><strong id="admin-data-last-sync">—</strong></article>
+<article class="kpi-card"><span>Origem atual</span><strong id="admin-data-origin">—</strong></article>
+<article class="kpi-card"><span>Turmas processadas</span><strong id="admin-data-classes">0</strong></article>
+<article class="kpi-card"><span>Resultado</span><strong id="admin-data-students">0</strong></article>
+<article class="kpi-card"><span>Fontes / abas</span><strong id="admin-data-sources">0 / 0</strong></article>
+<article class="kpi-card"><span>Erros</span><strong id="admin-data-errors">0</strong></article>
+<article class="kpi-card emphasis"><span>Alertas críticos</span><strong id="admin-data-critical">0</strong></article>
+</div>
+<div class="admin-alert-list" id="admin-data-alerts">
+<div class="empty-cell">Nenhum dado administrativo carregado.</div>
+</div>
+</article><article class="panel-card admin-economy-card" id="admin-economy-card">
+<div class="card-heading">
+<div>
+<h3>Modo econômico do projeto</h3>
+<span>Rotina automática via Supabase Cron, importação em lotes e cache consolidado.</span>
+</div>
+</div>
+<div class="kpi-grid admin-monitor-grid admin-economy-grid">
+<article class="kpi-card emphasis"><span>Status</span><strong id="admin-economy-status">Ativo</strong></article>
+<article class="kpi-card"><span>Rotina automática</span><strong id="admin-economy-schedule">—</strong></article>
+<article class="kpi-card"><span>Processamento</span><strong id="admin-economy-writes">0</strong></article>
+<article class="kpi-card"><span>Pendências</span><strong id="admin-economy-unchanged">0</strong></article>
+<article class="kpi-card"><span>Registros recentes</span><strong id="admin-economy-daily-written">0</strong></article>
+<article class="kpi-card"><span>Sem falhas</span><strong id="admin-economy-daily-skip">0</strong></article>
+<article class="kpi-card"><span>Firestore</span><strong id="admin-economy-backups">Desativados</strong></article>
+<article class="kpi-card"><span>Processamento</span><strong id="admin-economy-memory">512MiB</strong></article>
+</div>
+<div class="admin-economy-note" id="admin-economy-note">
+    Aguardando dados da rotina Supabase.
+  </div>
+</article>
+<article class="panel-card admin-actions-card">
+<div class="card-heading">
+<div>
+<h3>Atualização manual Supabase</h3>
+<span>A atualização automática permanece ativa. Use o botão somente quando precisar antecipar uma leitura das planilhas.</span>
+</div>
+</div>
+<div class="admin-action-grid admin-action-grid-lotes">
+<button class="button primary" id="admin-run-sync" type="button">Agendar sequência completa</button>
+<button class="button secondary" id="admin-run-lote-1" type="button">Rodar lote 1</button>
+<button class="button secondary" id="admin-run-lote-2" type="button">Rodar lote 2</button>
+<button class="button secondary" id="admin-run-lote-3" type="button">Rodar lote 3</button>
+<button class="button secondary" id="admin-run-lote-4" type="button">Rodar lote 4</button>
+<button class="button secondary" id="admin-run-cache" type="button">Atualizar cache</button>
+<button class="button secondary" id="admin-run-comparison" type="button">Atualizar histórico</button>
+<button class="button secondary" id="admin-run-diagnostic" type="button">Diagnóstico por turma</button>
+<button class="button secondary" id="admin-run-general-audit" type="button">Auditoria geral</button>
+</div>
+<div class="admin-action-result" id="admin-action-result">
+              Aguardando ação do administrador.
+            </div>
+</article>
+
+<article class="panel-card admin-lotes-card" id="admin-lotes-card">
+<div class="card-heading">
+<div>
+<h3>Turmas por lote de atualização</h3>
+<span>Use esta relação para acompanhar qual grupo de turmas está sendo atualizado em cada etapa manual ou automática.</span>
+</div>
+</div>
+<div class="admin-lotes-grid" id="admin-lotes-grid">
+<div class="empty-cell">Carregando relação de turmas por lote.</div>
+</div>
+<div class="admin-lotes-note">
+<strong>Sequência operacional:</strong> rode os lotes 1, 2, 3 e 4; depois atualize o cache. A rotina automática continua independente dos botões manuais.
+</div>
+</article>
+<article class="panel-card">
+<div class="card-heading">
+<h3>Detalhamento dos avisos</h3>
+<span>Mostra exatamente qual coleção, fonte, aba ou comparação exige providência.</span>
+</div>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Tipo</th>
+<th>Origem</th>
+<th>Detalhe técnico</th>
+<th>Ação recomendada</th>
+</tr>
+</thead>
+<tbody id="admin-alert-details-body"></tbody>
+</table>
+</div>
+</article>
+<article class="panel-card">
+<div class="card-heading">
+<h3>Últimas atualizações Supabase</h3>
+<span>Histórico recente em rotinas_atualizacao_frequencia</span>
+</div>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Início</th>
+<th>Modo</th>
+<th>Situação</th>
+<th>Turmas</th>
+<th>Resultado</th>
+<th>Erros</th>
+<th>Mensagem</th>
+</tr>
+</thead>
+<tbody id="admin-sync-jobs-body"></tbody>
+</table>
+</div>
+</article>
+<article class="panel-card">
+<div class="card-heading">
+<h3>Fontes de frequência</h3>
+<span>Planilhas de origem, abas esperadas, erros e diagnóstico.</span>
+</div>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Fonte</th>
+<th>Planilha</th>
+<th>Abas esperadas</th>
+<th>Abas encontradas</th>
+<th>Ausentes</th>
+<th>Com erro</th>
+<th>Alunos ativos</th>
+<th>Transferidos</th>
+<th>Pendência</th>
+</tr>
+</thead>
+<tbody id="admin-sources-body"></tbody>
+</table>
+</div>
+</article>
+<article class="panel-card">
+<div class="card-heading">
+<h3>Comparação de validação</h3>
+<span>Diferenças entre a coleção de teste e a coleção oficial.</span>
+</div>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Turma</th>
+<th>Fonte</th>
+<th>Diferença estrutural</th>
+<th>Diferença de código</th>
+<th>Detalhe</th>
+</tr>
+</thead>
+<tbody id="admin-comparison-body"></tbody>
+</table>
+</div>
+</article>
+<article class="panel-card">
+<div class="card-heading"><h3>Solicitações pendentes</h3></div>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Nome</th><th>E-mail</th><th>Data</th><th>Perfil a conceder</th><th>Ação</th></tr></thead>
+<tbody id="requests-table-body"></tbody>
+</table>
+</div>
+</article>
+<article class="panel-card">
+<div class="card-heading"><h3>Usuários autorizados</h3></div>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Coordenação</th><th>Situação</th><th>Ação</th></tr></thead>
+<tbody id="users-table-body"></tbody>
+</table>
+</div>
+</article>
+</section>
+</section>
+</div>
+</div>
+<dialog class="modal" id="student-dialog">
+<form class="modal-card" method="dialog">
+<div class="modal-heading">
+<div>
+<h3 id="dialog-student-name">Aluno</h3>
+<p id="dialog-student-meta"></p>
+<span class="sync-label" id="dialog-bulletin-count"></span>
+</div>
+<div class="button-row">
+<button class="button secondary" id="export-student-bulletin" type="button">Baixar boletim</button>
+<button aria-label="Fechar" class="icon-button" value="cancel">×</button>
+</div>
+</div>
+<div class="kpi-grid compact official-dialog-grid">
+<article class="kpi-card"><span>P</span><strong id="dialog-p">0</strong></article>
+<article class="kpi-card"><span>F</span><strong id="dialog-f">0</strong></article>
+<article class="kpi-card"><span>FJ</span><strong id="dialog-fj">0</strong></article>
+<article class="kpi-card"><span>A</span><strong id="dialog-a">0</strong></article>
+<article class="kpi-card"><span>AJ</span><strong id="dialog-aj">0</strong></article>
+<article class="kpi-card"><span>AD</span><strong id="dialog-ad">0</strong></article>
+<article class="kpi-card"><span>JE</span><strong id="dialog-je">0</strong></article>
+<article class="kpi-card"><span>S</span><strong id="dialog-s">0</strong></article>
+<article class="kpi-card emphasis"><span>Total</span><strong id="dialog-total">0</strong></article>
+</div>
+<div class="modal-chart"><canvas id="student-chart"></canvas></div>
+<div class="card-heading bulletin-heading"><h3>Boletim de frequência diária</h3><span>Período selecionado</span></div>
+<div class="table-wrap modal-table">
+<table>
+<thead><tr><th>Data</th><th>Código</th><th>Classificação diária</th><th>Compõe o relatório</th></tr></thead>
+<tbody id="dialog-records-body"></tbody>
+</table>
+</div>
+</form>
+</dialog>
+<section aria-hidden="true" id="attendance-print-root"></section>
+<section aria-hidden="true" id="council-report-root"></section>
+</body>
+</html>
