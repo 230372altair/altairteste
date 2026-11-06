@@ -18,6 +18,7 @@ Sirva `public` por HTTP, por exemplo com `npx serve public`. Os relatórios reai
 - Janela de impressão aberta durante o clique para evitar bloqueios após a espera pelos dados.
 - Filtros responsivos, tabelas com rolagem e foco pelo teclado, botões maiores no celular e saída da conta disponível no menu móvel.
 - Em telas estreitas, o menu abre um grupo por vez e os relatórios simples são apresentados como cartões com os nomes das colunas. Calendários e tabelas com cabeçalhos compostos mantêm rolagem própria. Indicadores permitem números grandes sem sobreposição.
+- Títulos objetivos sem subtítulos explicativos nas seções e atalhos; cabeçalho, cartões e espaçamentos compactos nos dois tamanhos de tela. Datas, totais, critérios e avisos operacionais dos relatórios são mantidos.
 - APOIA padroniza os nomes dos campos de faltas e sequência já reconhecidos pelo relatório individual, usando os mesmos totais na tabela, indicadores e exportação.
 
 ## Verificar

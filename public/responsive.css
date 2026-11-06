@@ -148,3 +148,56 @@ body.iee-portal-ui .mobile-logout { display: none; }
   body.iee-portal-ui .table-wrap { overflow: visible !important; max-height: none !important; }
   body.iee-portal-ui .mobile-logout { display: none !important; }
 }
+
+/* Visual compacto, compartilhado entre computador e celular. */
+#app-view { font-family: Arial, Helvetica, sans-serif; }
+#app-view .content-area { padding: 16px 20px 28px !important; }
+#app-view .view-section { gap: 14px !important; }
+#app-view .section-heading {
+  padding: 10px 12px !important; margin: 0 !important; gap: 12px !important;
+  border: 0 !important; border-bottom: 1px solid #dbe4ed !important;
+  background: #fff !important; box-shadow: none !important;
+}
+#app-view .section-heading h2 { font-size: 20px !important; font-weight: 600 !important; text-transform: none !important; letter-spacing: 0 !important; }
+#app-view .card-heading { margin-bottom: 10px !important; gap: 8px !important; }
+#app-view .card-heading h3,
+#app-view .dashboard-eva-header h3 { font-size: 16px !important; font-weight: 600 !important; text-transform: none !important; letter-spacing: 0 !important; }
+#app-view .panel-card,
+#app-view .chart-card,
+#app-view .filter-card,
+#app-view .dashboard-eva-overview {
+  padding: 14px !important; border: 1px solid #dce5ee !important;
+  border-radius: 8px !important; box-shadow: none !important;
+}
+#app-view .filter-card { gap: 10px !important; }
+#app-view .filter-card label { font-size: 12px !important; gap: 5px !important; }
+#app-view .hierarchy-card,
+#app-view .dashboard-student-full-card { min-height: 0 !important; height: auto !important; }
+#app-view .kpi-card,
+#app-view .dashboard-eva-kpi { padding: 12px !important; min-height: 80px !important; box-shadow: none !important; border-radius: 8px !important; }
+#app-view .button { min-height: 36px !important; padding: 8px 12px !important; border-radius: 6px !important; box-shadow: none !important; font-size: 13px !important; }
+#app-view .portal-brand-band { height: auto !important; min-height: 64px !important; }
+#app-view .portal-brand-center { padding-top: 10px !important; padding-bottom: 10px !important; min-height: 64px !important; }
+#app-view .portal-brand-logo { width: 36px !important; height: 36px !important; }
+#app-view .portal-brand-text strong { font-size: 22px !important; line-height: 1.2 !important; }
+#app-view .portal-brand-text > span { display: none !important; }
+#app-view #dashboard-eva-scope { display: none !important; }
+#app-view .report-data-status { margin: 0 !important; padding: 9px 12px !important; font-size: 12px; }
+#app-view .iee-home-v44-hero { grid-template-columns: 1fr !important; min-height: 0 !important; padding: 20px !important; border-radius: 8px !important; box-shadow: none !important; }
+#app-view .iee-home-v44-hero::before,
+#app-view .iee-home-v44-hero::after { display: none !important; }
+#app-view .iee-home-v44-hero h1 { font-size: 24px !important; margin: 0 0 12px !important; }
+#app-view .iee-home-v44-module { min-height: 68px !important; height: auto !important; padding: 12px !important; border-radius: 8px !important; box-shadow: none !important; }
+#app-view .iee-home-v44-heading h2 { font-size: 18px !important; }
+@media (max-width: 900px) {
+  #app-view .content-area { padding: 10px !important; }
+  #app-view .section-heading h2 { font-size: 18px !important; }
+  #app-view .section-heading { padding: 10px !important; }
+  #app-view .button { min-height: 44px !important; }
+  #app-view .portal-brand-text strong { font-size: 16px !important; }
+  #app-view .panel-card,
+  #app-view .filter-card,
+  #app-view .dashboard-eva-overview { padding: 12px !important; }
+  #app-view .kpi-card,
+  #app-view .dashboard-eva-kpi { padding: 10px !important; min-height: 84px !important; }
+}
