@@ -21,7 +21,7 @@ await new Promise(r => server.listen(0, '127.0.0.1', r));
 const origin = `http://127.0.0.1:${server.address().port}`;
 await mkdir('test-results', { recursive: true });
 const browser = await chromium.launch({ headless: true, ...(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {}) });
-const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, isMobile: true, hasTouch: true });
 const errors = [];
 await context.route('**/*', async route => {
   const url = route.request().url();
@@ -62,6 +62,9 @@ page.on('pageerror', e => errors.push(e.message));
 async function openView(view) {
   if (page.viewportSize().width <= 900) await page.locator('#mobile-menu-toggle').click();
   await page.locator(`#mobile-navigation .nav-button[data-view="${view}"]`).first().click();
+  if (page.viewportSize().width <= 900 && ['students', 'absence-alert', 'admin'].includes(view)) {
+    await page.locator(`#mobile-navigation .portal-submenu [data-view="${view}"]`).first().click();
+  }
   await page.waitForFunction(() => document.querySelector('#loading').classList.contains('hidden'));
 }
 try {
@@ -85,6 +88,7 @@ try {
   await page.locator('#dashboard-consolidated').click();
   await page.waitForFunction(() => document.querySelector('#loading').classList.contains('hidden'));
   assert.match(await page.locator('#dash-eva-periodo').innerText(), /sem filtro por datas/);
+  await page.waitForFunction(() => !document.querySelector('#toast').classList.contains('show'));
   await page.screenshot({ path: 'test-results/desktop.png', fullPage: true, animations: 'disabled' });
   const layouts = [];
   for (const width of [768, 390, 320]) {
@@ -93,7 +97,30 @@ try {
     assert.ok(layout.page <= width + 1, JSON.stringify(layout));
     assert.ok(layout.input <= layout.container, JSON.stringify(layout));
     layouts.push(layout);
-    if (width === 390) await page.screenshot({ path: 'test-results/mobile.png', fullPage: true, animations: 'disabled' });
+    await page.locator('#mobile-menu-toggle').click();
+    for (const group of ['students', 'apoia', 'admin']) {
+      await page.locator(`.portal-nav-group[data-nav-group="${group}"] > button`).click();
+      const buttons = await page.locator('#mobile-navigation button').evaluateAll(elements => elements.map(el => ({ text: el.textContent.trim(), r: el.getBoundingClientRect() })).filter(x => x.r.height > 0).map(x => ({ text: x.text, top: x.r.top, bottom: x.r.bottom, left: x.r.left, right: x.r.right })));
+      for (let i = 1; i < buttons.length; i++) assert.ok(buttons[i].top >= buttons[i - 1].bottom - 1, `Menu sobreposto em ${width}: ${buttons[i - 1].text} / ${buttons[i].text}`);
+      assert.equal(await page.locator('#mobile-navigation .portal-submenu:visible').count(), 1);
+    }
+    if (width === 390) await page.screenshot({ path: 'test-results/menu-android.png', animations: 'disabled' });
+    await page.locator('.mobile-menu-close').click();
+    await page.locator('#dash-eva-total-lancamentos').evaluate(el => { el.textContent = '1.234.567'; });
+    const overlaps = await page.locator('.dashboard-eva-kpi').evaluateAll(cards => cards.some(card => {
+      const children = [...card.children].map(el => el.getBoundingClientRect());
+      return children.some((r, i) => i > 0 && r.top < children[i - 1].bottom - 1);
+    }));
+    assert.equal(overlaps, false, `Indicadores sobrepostos em ${width}`);
+    if (width <= 600) {
+      await page.waitForFunction(() => document.querySelector('#class-table-body td')?.dataset.label);
+      const table = await page.locator('#class-table-body').evaluate(el => ({ width: el.closest('table').getBoundingClientRect().width, scroll: el.closest('table').scrollWidth }));
+      assert.ok(table.scroll <= width, `Relatório excede a tela em ${width}: ${JSON.stringify(table)}`);
+    }
+    if (width === 390) {
+      await page.screenshot({ path: 'test-results/mobile.png', fullPage: true, animations: 'disabled' });
+      await page.locator('#class-table-body').locator('..').screenshot({ path: 'test-results/relatorio-android.png', animations: 'disabled' });
+    }
   }
   await page.locator('#mobile-menu-toggle').click();
   await page.locator('.mobile-logout').waitFor({ state: 'visible' });
