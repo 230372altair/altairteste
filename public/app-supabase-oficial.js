@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createReadCoordinator, mapWithConcurrency, readWithDeadline } from "./report-requests.js";
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, ANO_LETIVO } from "./supabase-config.js";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
@@ -64,11 +65,13 @@ function toast(message, type = "info") {
   el.classList.add("show");
   setTimeout(() => el.classList.remove("show"), 4200);
 }
+let loadingCount = 0;
 function setLoading(active) {
+  loadingCount = Math.max(0, loadingCount + (active ? 1 : -1));
   const el = $("#loading");
   if (!el) return;
-  el.classList.toggle("hidden", !active);
-  el.setAttribute("aria-hidden", String(!active));
+  el.classList.toggle("hidden", loadingCount === 0);
+  el.setAttribute("aria-hidden", String(loadingCount === 0));
 }
 function emptyCell(message, colspan = 1) { return `<tr><td class="empty-cell" colspan="${colspan}">${escapeHtml(message)}</td></tr>`; }
 function codeCountsBase() { return { P:0, F:0, FJ:0, A:0, AJ:0, AD:0, JE:0, S:0, SC:0, semLancamento:0, total:0 }; }
@@ -147,7 +150,7 @@ function setupNavigation() {
 async function abrirVisao(view) {
   setView(view);
   const carregar = {
-    dashboard: renderDashboard,
+    dashboard: () => renderDashboard({ consolidated: true }),
     "daily-attendance": renderDaily,
     sectors: renderSectors,
     history: renderHistory,
@@ -159,10 +162,25 @@ async function abrirVisao(view) {
   }
 }
 
+const coordinateRead = createReadCoordinator(6);
+const reportReads = new Set([
+  "fn_alunos_por_turma_parametrizado", "fn_consultar_contatos_aluno_2026",
+  "fn_espelho_frequencia_aluno", "fn_frequencia_diaria_parametrizada",
+  "fn_historico_atendimentos_apoia", "fn_iee_painel_resumo_turmas",
+  "fn_painel_cache_frequencia", "fn_ranking_turmas_faltas_parametrizado",
+  "fn_relatorio_apoia_parametrizado", "fn_ultimas_atualizacoes_frequencia"
+]);
 async function rpc(name, args) {
-  const { data, error } = await supabase.rpc(name, args);
-  if (error) throw error;
-  return data || [];
+  const request = async () => {
+    const execute = signal => {
+      const operation = supabase.rpc(name, args);
+      return signal && typeof operation.abortSignal === "function" ? operation.abortSignal(signal) : operation;
+    };
+    const { data, error } = await (reportReads.has(name) ? readWithDeadline(execute) : execute());
+    if (error) throw error;
+    return data || [];
+  };
+  return reportReads.has(name) ? coordinateRead(name, args, request) : request();
 }
 
 // Registro manual de atendimentos APOIA pela Edge Function protegida.
@@ -251,7 +269,8 @@ function normalizeDashboardRow(row) {
 }
 
 async function carregarDashboardConsolidadoFallback(sector = "", turma = "") {
-  const data = await rpc("fn_iee_painel_resumo_turmas", {});
+  // Resumo já obtido na entrada. Não representa um intervalo personalizado.
+  const data = state.classes;
   return (data || [])
     .filter(r => !sector || String(r.coordenacao_codigo || r.setorId || r.coordenacao_nome || r.setor || "") === String(sector) || String(r.coordenacao_nome || r.setor || "").toLowerCase().includes(String(sector).toLowerCase()))
     .filter(r => !turma || String(r.turma || "") === String(turma))
@@ -832,8 +851,10 @@ function renderClassTable(rows) {
   }).join("") || emptyCell("Gere um relatório.", 12);
   $$('[data-dashboard-class]').forEach(b => b.addEventListener("click", () => loadDashboardStudents(b.dataset.dashboardClass)));
 }
-async function renderDashboard() {
+async function renderDashboard({ consolidated = false } = {}) {
   setLoading(true);
+  const status = $("#dashboard-data-status");
+  if (status) status.textContent = consolidated ? "Preparando resumo consolidado..." : "Consultando o período selecionado...";
   try {
     const sector = $("#dashboard-sector-filter")?.value || "";
     const turma = $("#dashboard-class-filter")?.value || "";
@@ -868,24 +889,36 @@ async function renderDashboard() {
       $$('[data-student-action="card"]').forEach(b => b.addEventListener("click", () => { setView("attendance-card"); loadAttendanceCard(b.dataset.matricula, b.dataset.turma); }));
       $("#class-count-label").textContent = "Filtro individual";
       $("#class-table-body").innerHTML = emptyCell("Relatório em nível de aluno gerado no quadro Alunos / relatório individual.", 12);
+      if (status) status.textContent = "Consulta individual concluída para as datas selecionadas.";
       return;
     }
 
     let rows = [];
-    try {
-      rows = await rpc("fn_ranking_turmas_faltas_parametrizado", { p_ano_letivo: ANO_LETIVO, p_data_inicio: start, p_data_fim: end, p_coordenacao_codigo: sector, p_limite: 300 });
-    } catch (rpcError) {
-      console.warn("Falha no RPC de visão gerencial; usando cache consolidado.", rpcError);
+    if (consolidated) {
       rows = await carregarDashboardConsolidadoFallback(sector, turma);
+    } else {
+      const querySector = sector || (turma ? state.classes.find(c => String(c.turma) === String(turma))?.setorId || "" : "");
+      rows = await rpc("fn_ranking_turmas_faltas_parametrizado", { p_ano_letivo: ANO_LETIVO, p_data_inicio: start, p_data_fim: end, p_coordenacao_codigo: querySector, p_limite: 300 });
     }
     state.dashboardClasses = rows.filter(r => !turma || String(r.turma) === turma).map(normalizeDashboardRow);
     const dashboardTotal = dashboardTotalsFromRows(state.dashboardClasses);
     updateDashboardKpis(dashboardTotal);
-    updateDashboardEvaOverview(dashboardTotal, dashboardMetaFromClassRows(state.dashboardClasses, start, end, sector, turma));
+    const meta = dashboardMetaFromClassRows(state.dashboardClasses, start, end, sector, turma);
+    if (consolidated) meta.periodo = "Base consolidada das turmas — sem filtro por datas.";
+    updateDashboardEvaOverview(dashboardTotal, meta);
+    if (status) status.textContent = consolidated
+      ? "Resumo da base carregada na entrada, com filtros de setor e turma. As datas não são aplicadas. Use Consultar período para aplicar as datas."
+      : "Relatório concluído para as datas selecionadas.";
     renderDashboardHierarchy(state.dashboardClasses);
     renderClassTable(state.dashboardClasses);
     $("#hierarchy-student-body").innerHTML = `<div class="empty-cell">Clique em uma turma para carregar a relação nominal dos alunos, ou selecione um aluno nos filtros acima e gere novamente.</div>`;
-  } catch(e) { toast(`Erro ao gerar visão gerencial: ${e.message}`, "error"); }
+  } catch(e) {
+    const message = String(e.code) === "57014"
+      ? "O Supabase excedeu o tempo limite. Reduza o período ou consulte uma turma por vez."
+      : e.message;
+    if (status) status.textContent = `Consulta não concluída: ${message} Os quadros abaixo mantêm o último relatório concluído. Você também pode abrir o resumo consolidado, sem filtro de datas.`;
+    toast(`Erro ao gerar visão gerencial: ${message}`, "error");
+  }
   finally { setLoading(false); }
 }
 function renderDashboardStudentRows(rows) {
@@ -1487,7 +1520,8 @@ async function renderAbsenceAlert() {
     const turma = $("#absence-class-filter")?.value || "";
     const data = await rpc("fn_relatorio_apoia_parametrizado", { p_ano_letivo: ANO_LETIVO, p_data_inicio: start, p_data_fim: ref, p_faltas_consecutivas: faltasCons, p_faltas_alternadas: faltasAlt, p_coordenacao_codigo: sector, p_turma: turma });
     const alunoSelecionado = $("#absence-student-list")?.value || "";
-    const rows = alunoSelecionado ? data.filter(r => String(r.matricula || "") === String(alunoSelecionado)) : data;
+    const rows = (alunoSelecionado ? data.filter(r => String(r.matricula || "") === String(alunoSelecionado)) : data)
+      .map(row => ({ ...row, total_f: numeroFaltasApoia(row), maior_sequencia_f: maiorSequenciaApoia(row) }));
     state.absenceAlerts = rows;
     $("#absence-rule-alt-title") && ($("#absence-rule-alt-title").textContent = `Mais de ${String(faltasAlt).padStart(2,"0")} faltas intercaladas`);
     $("#absence-rule-alt-text") && ($("#absence-rule-alt-text").textContent = `Conta código F no intervalo de ${dias} dia(s) anteriores à data de referência.`);
@@ -2331,12 +2365,14 @@ async function buildCouncilReportHtml(rows) {
   const faltasAlt = Math.max(1, Number($("#absence-alt-threshold")?.value || 7));
   const faltasCons = Math.max(1, Number($("#absence-consecutive-threshold")?.value || 5));
   const start = isoMinusDays(ref, dias);
-  const enriched = await Promise.all(rows.map(async r => ({
-    ...r,
-    __contato: r.__contato || await getContatoAluno(r.matricula, r.turma || ""),
-    __datas_faltas_detalhadas: await obterDatasFaltasAluno(r, start, ref),
-    __historico_atendimentos: await obterHistoricoAtendimentosAluno(r, ref)
-  })));
+  const enriched = await mapWithConcurrency(rows, 3, async r => {
+    const [contato, datas, historico] = await Promise.all([
+      r.__contato || getContatoAluno(r.matricula, r.turma || ""),
+      obterDatasFaltasAluno(r, start, ref),
+      obterHistoricoAtendimentosAluno(r, ref)
+    ]);
+    return { ...r, __contato: contato, __datas_faltas_detalhadas: datas, __historico_atendimentos: historico };
+  });
   const pages = enriched.map(r => {
     const totalFaltas = numeroFaltasApoia(r);
     const maiorSeq = maiorSequenciaApoia(r);
@@ -2356,15 +2392,17 @@ async function openCouncilReportIndividual(matricula, turma) {
 
   if (!alvo) return toast("Estudante não localizado no relatório APOIA atual. Gere o relatório novamente.", "error");
 
+  const w = openReportWindow();
+  if (!w) return;
   setLoading(true);
   try {
     const html = await buildCouncilReportHtml([alvo]);
-    const w = window.open("", "_blank", "width=900,height=800");
-    if (!w) return toast("O navegador bloqueou a janela de impressão. Libere pop-ups para este site.", "error");
+    if (w.closed) return;
     w.document.open();
     w.document.write(html);
     w.document.close();
   } catch (e) {
+    w.close();
     toast(`Erro ao emitir relatório individual ao Conselho Tutelar: ${e.message}`, "error");
   } finally {
     setLoading(false);
@@ -2373,25 +2411,40 @@ async function openCouncilReportIndividual(matricula, turma) {
 
 async function openCouncilReport() {
   if (!state.absenceAlerts.length) return toast("Gere o relatório APOIA antes de emitir.", "error");
+  const w = openReportWindow();
+  if (!w) return;
   setLoading(true);
   try {
     const html = await buildCouncilReportHtml(state.absenceAlerts);
-    const w = window.open("", "_blank", "width=900,height=800");
-    if (!w) return toast("O navegador bloqueou a janela de impressão. Libere pop-ups para este site.", "error");
+    if (w.closed) return;
     w.document.open();
     w.document.write(html);
     w.document.close();
   } catch (e) {
+    w.close();
     toast(`Erro ao emitir relatório ao Conselho Tutelar: ${e.message}`, "error");
   } finally {
     setLoading(false);
   }
 }
 
+function openReportWindow() {
+  // Abrir durante o clique evita o bloqueio de pop-up após a consulta assíncrona.
+  const w = window.open("", "_blank", "width=900,height=800");
+  if (!w) {
+    toast("O navegador bloqueou a janela de impressão. Libere pop-ups para este site.", "error");
+    return null;
+  }
+  w.document.write('<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Preparando relatório</title><body style="font:18px system-ui;padding:32px;color:#193b60"><p role="status">Preparando relatório APOIA. Aguarde...</p></body></html>');
+  w.document.close();
+  return w;
+}
+
 
 function setupActions() {
   $("#refresh-dashboard")?.addEventListener("click", async()=>{ await loadBase(); setupSelectors(); toast("Bases Supabase recarregadas."); });
   $("#apply-filters")?.addEventListener("click", renderDashboard);
+  $("#dashboard-consolidated")?.addEventListener("click", () => renderDashboard({ consolidated: true }));
   $("#dashboard-class-filter")?.addEventListener("change", handleDashboardClassChange);
   $("#dashboard-student-list")?.addEventListener("change", () => { if ($("#dashboard-student-list")?.value && $("#dashboard-student-search")) $("#dashboard-student-search").value = ""; });
   $("#print-dashboard")?.addEventListener("click", () => window.print());
@@ -2584,17 +2637,11 @@ async function iniciarPortal() {
   setLoading(true);
   try {
     renderHomeStats(); setupNavigation(); setupDates();
-    await loadBase(); await refreshCacheLabel();
-    setupSelectors(); setupActions(); renderSectors(); renderAdmin(); renderAdminDetails();
+    await Promise.all([loadBase(), refreshCacheLabel()]);
+    setupSelectors(); setupActions(); renderAdminDetails();
     clearDaily(); clearAbsence(); renderAdminLotes([]);
-    await renderHistory();
-    // Pacote 27: carrega automaticamente a Visão Gerencial na entrada do sistema.
-    // Usa RPC parametrizado e, se houver falha, usa o cache consolidado para evitar tela zerada.
-    await renderDashboard();
-    setTimeout(() => {
-      const totalAtual = Number(String($("#dash-eva-total-lancamentos")?.textContent || "0").replace(/\D/g, "") || 0);
-      if (!totalAtual) renderDashboard().catch(console.error);
-    }, 1200);
+    // Os relatórios são carregados por abrirVisao quando o usuário os abre.
+    // Zero lançamentos é um resultado válido e não deve disparar nova consulta.
     return true;
   } catch(e) {
     console.error(e);

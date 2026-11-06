@@ -10,13 +10,14 @@
 <link href="https://cdn.jsdelivr.net" rel="preconnect"/>
 <link href="favicon.ico" rel="icon" sizes="any"/>
 <link href="styles.css?v=20261022-mobile-final-3" rel="stylesheet"/>
+<link href="responsive.css?v=20261106" rel="stylesheet"/>
 <script defer="" src="https://cdn.jsdelivr.net/npm/chart.js@4.4.9/dist/chart.umd.min.js"></script>
-<script src="app-supabase-oficial.js?v=20261022-restaurado" type="module"></script>
-<script src="mobile-menu.js?v=20261022-mobile-final-3" defer></script>
+<script src="app-supabase-oficial.js?v=20261106" type="module"></script>
+<script src="mobile-menu.js?v=20261106" defer></script>
 </head>
 <body class="iee-modern-theme iee-pro-ui iee-portal-ui visual-premium-futurista home-original-override-final home-body-corrigido-final home-recriada-final">
 <div aria-live="polite" class="toast" id="toast" role="status"></div>
-<div aria-hidden="true" class="loading hidden" id="loading">
+<div aria-hidden="true" aria-live="polite" role="status" class="loading hidden" id="loading">
 <div class="spinner"></div>
 <span>Processando...</span>
 </div>
@@ -277,10 +278,12 @@
               <input id="date-end" type="date"/>
 </label>
 <div class="filter-actions">
-<button class="button primary" id="apply-filters" type="button">Gerar relatório</button>
+<button class="button primary" id="apply-filters" type="button">Consultar período</button>
+<button class="button secondary" id="dashboard-consolidated" type="button">Ver resumo consolidado</button>
 <button class="button secondary" id="reset-period" type="button">Período padrão</button>
 </div>
 </div>
+<p id="dashboard-data-status" class="report-data-status" role="status" aria-live="polite"></p>
 <section class="dashboard-eva-overview" id="dashboard-eva-overview" aria-label="Resumo gerencial consolidado">
   <div class="dashboard-eva-header">
     <div>

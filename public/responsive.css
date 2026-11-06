@@ -1,0 +1,59 @@
+/* Ajustes de leitura e interação, carregados depois do tema original. */
+.report-data-status { padding: 14px 16px; border-left: 4px solid #1976d2; border-radius: 8px; background: #edf5ff; color: #193b60; line-height: 1.5; }
+body.iee-portal-ui .content-area { min-width: 0; }
+body.iee-portal-ui .section-heading h2 { letter-spacing: -.025em; line-height: 1.2; }
+body.iee-portal-ui .filter-card {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)) !important;
+  gap: 16px !important;
+  align-items: end;
+  border: 1px solid #d8e3ee;
+  box-shadow: 0 4px 18px rgb(15 42 72 / 4%);
+}
+body.iee-portal-ui .filter-card label { min-width: 0; display: grid; gap: 7px; }
+body.iee-portal-ui .filter-card input,
+body.iee-portal-ui .filter-card select { width: 100% !important; min-width: 0 !important; min-height: 44px; }
+body.iee-portal-ui .filter-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 10px; }
+body.iee-portal-ui .table-wrap {
+  max-width: 100%; overflow: auto !important; overscroll-behavior-x: contain;
+  border: 1px solid #d8e3ee; border-radius: 12px;
+}
+body.iee-portal-ui .table-wrap:focus-visible { outline: 3px solid #1976d2; outline-offset: 3px; }
+body.iee-portal-ui .table-wrap table { border-collapse: separate; border-spacing: 0; width: 100%; }
+body.iee-portal-ui .table-wrap thead th { background: #edf3fa; color: #193b60; }
+body.iee-portal-ui .table-wrap td { padding: 12px; line-height: 1.45; border-bottom: 1px solid #edf1f5; }
+body.iee-portal-ui .table-wrap tbody tr:nth-child(even) { background: #f8fafc; }
+body.iee-portal-ui .table-wrap tbody tr:hover { background: #edf5ff; }
+body.iee-portal-ui button:focus-visible,
+body.iee-portal-ui input:focus-visible,
+body.iee-portal-ui select:focus-visible { outline: 3px solid #3986d1; outline-offset: 3px; }
+body.iee-portal-ui .loading { gap: 14px; }
+body.iee-portal-ui .mobile-logout { display: none; }
+@media (max-width: 900px) {
+  body.iee-portal-ui .section-heading { align-items: flex-start !important; flex-wrap: wrap; }
+  body.iee-portal-ui .section-heading > div { min-width: 0; max-width: 100%; }
+  body.iee-portal-ui .button-row { flex-wrap: wrap; gap: 8px; }
+  body.iee-portal-ui .button,
+  body.iee-portal-ui .portal-nav-parent,
+  body.iee-portal-ui .iee-portal-nav .nav-button { min-height: 44px !important; height: auto !important; }
+  body.iee-portal-ui .dashboard-eva-kpis { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 10px !important; }
+  body.iee-portal-ui .dashboard-eva-kpi { min-width: 0; padding: 14px !important; }
+  body.iee-portal-ui .dashboard-eva-kpi strong { font-size: clamp(22px, 6vw, 32px) !important; overflow-wrap: anywhere; }
+  body.iee-portal-ui .table-wrap td { padding: 10px; }
+  body.iee-portal-ui .mobile-logout { display: block; margin: 12px; width: calc(100% - 24px); }
+}
+@media (max-width: 560px) {
+  body.iee-portal-ui .filter-card { padding: 16px !important; gap: 14px !important; }
+  body.iee-portal-ui .filter-actions > .button { flex: 1 1 100%; }
+  body.iee-portal-ui .filter-card input,
+  body.iee-portal-ui .filter-card select { font-size: 16px !important; }
+  body.iee-portal-ui .section-heading h2 { font-size: 24px !important; }
+  body.iee-portal-ui .section-heading p { font-size: 14px; line-height: 1.5; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
+@media print {
+  body.iee-portal-ui .table-wrap { overflow: visible !important; max-height: none !important; }
+  body.iee-portal-ui .mobile-logout { display: none !important; }
+}
